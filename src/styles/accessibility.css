@@ -1,0 +1,177 @@
+/**
+ * Accessibility tokens — visual & cognitive support.
+ * Activated via data attributes on <html> from AccessibilityProvider.
+ */
+
+/* ── Large text ─────────────────────────────────────────────── */
+[data-large-text='true'] {
+  --a11y-text-base: 1.125rem;
+  --a11y-text-lg: 1.25rem;
+  --a11y-text-xl: 1.5rem;
+  --a11y-text-2xl: 1.875rem;
+  --a11y-text-3xl: 2.25rem;
+  --a11y-btn-min-h: 3.5rem;
+}
+
+[data-large-text='false'],
+:root:not([data-large-text]) {
+  --a11y-text-base: 1rem;
+  --a11y-text-lg: 1.125rem;
+  --a11y-text-xl: 1.25rem;
+  --a11y-text-2xl: 1.5rem;
+  --a11y-text-3xl: 1.875rem;
+  --a11y-btn-min-h: 3rem;
+}
+
+.a11y-text-base {
+  font-size: var(--a11y-text-base);
+}
+
+.a11y-text-lg {
+  font-size: var(--a11y-text-lg);
+}
+
+.a11y-text-xl {
+  font-size: var(--a11y-text-xl);
+}
+
+.a11y-text-2xl {
+  font-size: var(--a11y-text-2xl);
+}
+
+.a11y-text-3xl {
+  font-size: var(--a11y-text-3xl);
+}
+
+.a11y-btn-touch {
+  min-height: var(--a11y-btn-min-h);
+}
+
+.a11y-focus-ring:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:disabled.a11y-disabled,
+.a11y-disabled:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Reduce motion ──────────────────────────────────────────── */
+[data-reduce-motion='true'] *,
+[data-reduce-motion='true'] *::before,
+[data-reduce-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+[data-reduce-motion='true'] .activity-card-emphasis {
+  transform: none !important;
+}
+
+[data-reduce-motion='true'] .celebration-backdrop-in,
+[data-reduce-motion='true'] .celebration-panel-in,
+[data-reduce-motion='true'] .celebration-scale-in,
+[data-reduce-motion='true'] .celebration-confetti-piece {
+  animation: none !important;
+}
+
+/* ── High contrast ──────────────────────────────────────────── */
+[data-high-contrast='true'] {
+  --color-bg: #e2e8f0;
+  --color-primary: #1d4ed8;
+  --color-primary-dark: #1e3a8a;
+  --a11y-border: #0f172a;
+  --a11y-text: #0f172a;
+}
+
+[data-high-contrast='true'] body {
+  color: var(--a11y-text);
+}
+
+[data-high-contrast='true'] button,
+[data-high-contrast='true'] [role='button'] {
+  border-width: 2px;
+  border-style: solid;
+}
+
+[data-high-contrast='true'] .ring-slate-100,
+[data-high-contrast='true'] .ring-slate-200 {
+  --tw-ring-color: #334155;
+}
+
+[data-high-contrast='true'] .a11y-focus-ring:focus-visible {
+  outline: 3px solid #0f172a;
+  outline-offset: 3px;
+}
+
+/* ── Activity states (not color-only) ───────────────────────── */
+[data-activity-state='pending'] {
+  border-left: 4px solid #64748b;
+}
+
+[data-activity-state='in_progress'] {
+  border-left: 4px solid var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+[data-activity-state='completed'] {
+  border-left: 4px solid #059669;
+}
+
+[data-activity-state='skipped'] {
+  border-left: 4px dashed #d97706;
+}
+
+[data-activity-state='missed'] {
+  border-left: 4px dotted #dc2626;
+}
+
+[data-high-contrast='true'][data-activity-state='pending'] {
+  border-left-width: 5px;
+  border-left-color: #0f172a;
+}
+
+[data-high-contrast='true'][data-activity-state='in_progress'] {
+  border-left-width: 5px;
+  border-left-color: #1d4ed8;
+}
+
+[data-high-contrast='true'][data-activity-state='completed'] {
+  border-left-width: 5px;
+  border-left-color: #047857;
+}
+
+[data-high-contrast='true'][data-activity-state='skipped'] {
+  border-left-width: 5px;
+  border-left-color: #b45309;
+}
+
+[data-high-contrast='true'][data-activity-state='missed'] {
+  border-left-width: 5px;
+  border-left-color: #b91c1c;
+}
+
+/* Status badges — icon + text + border */
+.a11y-status-badge {
+  border: 1px solid transparent;
+}
+
+[data-high-contrast='true'] .a11y-status-badge {
+  border-color: currentColor;
+  font-weight: 700;
+}
+
+/* Selected / disabled UI states */
+.a11y-selected {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.a11y-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
