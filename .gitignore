@@ -10,3 +10,8 @@ android/local.properties
 .vscode/
 .idea/
 coverage/
+
+# Android signing
+android/keystores/
+*.jks
+*.keystore
