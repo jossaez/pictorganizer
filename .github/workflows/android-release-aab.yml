@@ -67,21 +67,43 @@ jobs:
 
         run: |
 
-          mkdir -p android/app/app/keystores
+          mkdir -p android/keystores
 
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/app/keystores/pictorganizer-release.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/keystores/pictorganizer-release.jks
 
-          ls -la android/app/app/keystores
+          test -f android/keystores/pictorganizer-release.jks
+
+          ls -la android/keystores
 
       - name: Make Gradle executable
 
         run: chmod +x android/gradlew
 
-      - name: Build signed Android release bundle
+      - name: Build unsigned release bundle
 
         working-directory: android
 
         run: ./gradlew bundleRelease
+
+      - name: Sign AAB with jarsigner
+
+        run: |
+
+          jarsigner \
+
+            -keystore android/keystores/pictorganizer-release.jks \
+
+            -storepass '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}' \
+
+            -keypass '${{ secrets.ANDROID_KEY_PASSWORD }}' \
+
+            android/app/build/outputs/bundle/release/app-release.aab \
+
+            '${{ secrets.ANDROID_KEY_ALIAS }}'
+
+      - name: Verify signed AAB
+
+        run: jarsigner -verify -verbose -certs android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Upload signed release AAB
 
