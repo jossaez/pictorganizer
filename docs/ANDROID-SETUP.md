@@ -39,7 +39,15 @@ npm run cap:sync        # sincronizar assets/plugins
 - `@capacitor/core`
 - `@capacitor/android`
 - `@capacitor/app` — ciclo de vida y botón atrás
+- `@capacitor/status-bar` — barra de estado no superpuesta, color alineado con la cabecera (`#ffffff`)
 - `@capacitor/local-notifications` — recordatorios offline
+
+### Safe area y barra de estado
+
+- `index.html` usa `viewport-fit=cover`.
+- Utilidades CSS en `src/styles/safe-area.css` (`.safe-top`, `.safe-bottom`, `.safe-x`).
+- En nativo, `configureNativeStatusBar()` desactiva el overlay (`setOverlaysWebView({ overlay: false })`) y pinta la status bar del mismo color que la cabecera.
+- Tras `npm run android:build`, probar en dispositivo real que avatar, nombre e iconos no queden bajo la hora del sistema.
 
 La lógica de notificaciones **no** se llama desde componentes React. Está en `src/infrastructure/notifications/`.
 

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CelebrationStyle } from '@/domain/enums';
 import { CelebrationIcon } from '@/components/feedback/CelebrationIcon';
 import { useAppStore } from '@/store/app.store';
@@ -12,6 +13,7 @@ const AUTO_DISMISS_MS = {
 } as const;
 
 export function CelebrationOverlay() {
+  const { t } = useTranslation();
   const celebration = useUiStore((s) => s.celebration);
   const hideCelebration = useUiStore((s) => s.hideCelebration);
   const userMode = useAppStore((s) => s.userMode);
@@ -58,9 +60,9 @@ export function CelebrationOverlay() {
         type="button"
         className="sr-only a11y-focus-ring"
         onClick={handleDismiss}
-        aria-label="Cerrar celebración"
+        aria-label={t('celebration.close')}
       >
-        Cerrar
+        {t('common.cancel')}
       </button>
 
       <div

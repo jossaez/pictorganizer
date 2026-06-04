@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { i18n } from '@/i18n';
 import { DailyProgressCard } from './DailyProgressCard';
 import type { DailyProgress } from '@/domain/services/progress.service';
 import { renderWithProviders, screen } from '@/test/test-utils';
@@ -37,6 +38,6 @@ describe('DailyProgressCard', () => {
       />,
     );
 
-    expect(screen.getByText('No hay actividades programadas hoy')).toBeInTheDocument();
+    expect(screen.getByText(i18n.t('progress.dailyEmpty'))).toBeInTheDocument();
   });
 });

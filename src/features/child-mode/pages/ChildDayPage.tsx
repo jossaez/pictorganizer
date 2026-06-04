@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { DayTimeline } from '@/features/agenda/components/DayTimeline';
 import { useDayAgenda } from '@/features/agenda/hooks/useDayAgenda';
@@ -6,6 +7,7 @@ import { useAppStore } from '@/store/app.store';
 import { formatDisplayDate } from '@/utils/formatDate';
 
 export function ChildDayPage() {
+  const { t } = useTranslation();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const reduceMotion = useAppStore((s) => s.reduceMotion);
 
@@ -23,7 +25,7 @@ export function ChildDayPage() {
   const showTimer = profileSettings?.showTimer ?? true;
 
   if (isLoading) {
-    return <p className="text-center text-slate-500">Cargando…</p>;
+    return <p className="text-center text-slate-500">{t('common.loading')}</p>;
   }
 
   return (
@@ -34,7 +36,7 @@ export function ChildDayPage() {
         </h2>
         <Link to="/child">
           <Button variant="ghost" className="text-[var(--color-primary)]">
-            Volver
+            {t('childMode.back')}
           </Button>
         </Link>
       </div>
@@ -47,7 +49,7 @@ export function ChildDayPage() {
 
       {enrichedActivities.length === 0 ? (
         <p className="rounded-3xl bg-white p-8 text-center text-lg text-slate-600 shadow-sm">
-          No hay actividades hoy
+          {t('childMode.noActivitiesToday')}
         </p>
       ) : (
         <DayTimeline

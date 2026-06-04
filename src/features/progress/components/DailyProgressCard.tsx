@@ -6,6 +6,7 @@ import {
 } from '@/domain/services/progress.service';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/utils/cn';
+import { useTranslation } from 'react-i18next';
 
 interface DailyProgressCardProps {
   progress: DailyProgress;
@@ -18,6 +19,7 @@ export function DailyProgressCard({
   userMode = 'adult',
   isLoading = false,
 }: DailyProgressCardProps) {
+  const { t } = useTranslation();
   const isChildMode = userMode === 'child';
   const message = getDailyProgressMessage(progress);
   const summary = getDailyProgressSummary(progress);
@@ -37,7 +39,7 @@ export function DailyProgressCard({
     return (
       <Card padding="lg" className="text-center">
         <p className={cn('text-slate-600', isChildMode ? 'text-lg' : 'text-base')}>
-          No hay actividades programadas hoy
+          {t('progress.dailyEmpty')}
         </p>
       </Card>
     );
@@ -63,8 +65,8 @@ export function DailyProgressCard({
           >
             {isChildMode
               ? progress.isComplete
-                ? 'Todas hechas'
-                : `${progress.completed} de ${progress.total}`
+                ? t('progress.dailyAllDone')
+                : t('progress.countOfTotal', { completed: progress.completed, total: progress.total })
               : summary}
           </p>
         </div>
@@ -105,16 +107,16 @@ export function DailyProgressCard({
           <ul className="grid grid-cols-2 gap-2 text-sm text-slate-600 sm:grid-cols-4">
             <li>
               <span className="font-semibold text-emerald-700">{progress.completed}</span>{' '}
-              completadas
+              {t('progress.completed')}
             </li>
             <li>
-              <span className="font-semibold text-slate-700">{progress.pending}</span> pendientes
+              <span className="font-semibold text-slate-700">{progress.pending}</span> {t('progress.pending')}
             </li>
             <li>
-              <span className="font-semibold text-amber-700">{progress.skipped}</span> saltadas
+              <span className="font-semibold text-amber-700">{progress.skipped}</span> {t('progress.skipped')}
             </li>
             <li>
-              <span className="font-semibold text-red-600">{progress.missed}</span> no realizadas
+              <span className="font-semibold text-red-600">{progress.missed}</span> {t('progress.missed')}
             </li>
           </ul>
         )}

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RecurrenceType } from '@/domain/enums';
 import { EditScope } from '@/domain/types/entities';
@@ -20,6 +21,7 @@ import { useAppStore } from '@/store/app.store';
 import { formatDisplayDate } from '@/utils/formatDate';
 
 export function EditActivityPage() {
+  const { t } = useTranslation();
   const { instanceId } = useParams<{ instanceId: string }>();
   const navigate = useNavigate();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
@@ -106,7 +108,7 @@ export function EditActivityPage() {
       if (updated) {
         navigate('/agenda', {
           replace: true,
-          state: { message: 'Actividad actualizada' },
+          state: { message: t('activity.flash.updated') },
         });
       }
       return;
@@ -116,7 +118,7 @@ export function EditActivityPage() {
     if (result) {
       navigate('/agenda', {
         replace: true,
-        state: { message: 'Cambios aplicados a próximas actividades' },
+        state: { message: t('activity.flash.futureUpdated') },
       });
     }
   }
@@ -132,13 +134,13 @@ export function EditActivityPage() {
     if (success) {
       navigate('/agenda', {
         replace: true,
-        state: { message: 'Actividad eliminada' },
+        state: { message: t('activity.flash.deleted') },
       });
     }
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
       <div className="mx-auto w-full max-w-lg md:max-w-xl">
         <Button variant="ghost" className="mb-4 gap-2 px-0" onClick={() => navigate('/agenda')}>
           <ArrowLeft className="h-5 w-5" aria-hidden />

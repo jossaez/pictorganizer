@@ -12,8 +12,7 @@ const navItems = [
 export function BottomNav() {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-md"
-      style={{ paddingBottom: 'max(0.5rem, var(--safe-bottom))' }}
+      className="safe-bottom fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 pb-2 backdrop-blur-md"
       aria-label="Navegación principal"
     >
       <div className="mx-auto flex max-w-3xl items-stretch justify-around px-2 pt-2 md:max-w-5xl">

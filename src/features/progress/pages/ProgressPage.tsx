@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { DailyProgressCard } from '@/features/progress/components/DailyProgressCard';
 import { WeeklyProgressCard } from '@/features/progress/components/WeeklyProgressCard';
@@ -20,6 +21,7 @@ function formatWeekRange(startDate: string, endDate: string): string {
 }
 
 export function ProgressPage() {
+  const { t } = useTranslation();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const selectedDate = useAppStore((s) => s.selectedDate);
   const setSelectedDate = useAppStore((s) => s.setSelectedDate);
@@ -68,11 +70,11 @@ export function ProgressPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">Progreso</h2>
+        <h2 className="text-2xl font-bold text-slate-900">{t('progress.title')}</h2>
         <p className="mt-1 text-slate-600">
           {isToday
-            ? 'Resumen de hoy y de la semana, calculado desde tu agenda.'
-            : `Resumen del ${formatDisplayDate(selectedDate)}.`}
+            ? t('progress.summaryToday')
+            : t('progress.summaryDate', { date: formatDisplayDate(selectedDate) })}
         </p>
       </div>
 
@@ -81,18 +83,18 @@ export function ProgressPage() {
           isEffectiveTablet ? 'grid grid-cols-2 items-start gap-6 md:gap-8' : 'space-y-6',
         )}
       >
-        <section aria-label="Progreso diario">
+        <section aria-label={t('progress.sectionToday')}>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Hoy
+            {t('agenda.today')}
           </h3>
           <DailyProgressCard progress={progress} userMode={userMode} isLoading={isDailyLoading} />
         </section>
 
-        <section aria-label="Resumen semanal" className="space-y-4">
+        <section aria-label={t('progress.sectionWeek')} className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Semana
+                {t('progress.sectionWeekLabel')}
               </h3>
               <p className="mt-1 text-sm capitalize text-slate-600">{weekLabel}</p>
             </div>
@@ -101,23 +103,23 @@ export function ProgressPage() {
                 variant="secondary"
                 className="min-h-11 gap-1 px-3"
                 onClick={goToPreviousWeek}
-                aria-label="Semana anterior"
+                aria-label={t('progress.weekPreviousAria')}
               >
                 <ChevronLeft className="h-5 w-5" aria-hidden />
-                Anterior
+                {t('progress.weekPrevious')}
               </Button>
               {!isCurrentWeek && (
                 <Button variant="ghost" className="min-h-11" onClick={goToCurrentWeek}>
-                  Esta semana
+                  {t('progress.thisWeek')}
                 </Button>
               )}
               <Button
                 variant="secondary"
                 className="min-h-11 gap-1 px-3"
                 onClick={goToNextWeek}
-                aria-label="Semana siguiente"
+                aria-label={t('progress.weekNextAria')}
               >
-                Siguiente
+                {t('progress.weekNext')}
                 <ChevronRight className="h-5 w-5" aria-hidden />
               </Button>
             </div>
@@ -127,7 +129,7 @@ export function ProgressPage() {
         </section>
       </div>
 
-      <section aria-label="Desglose semanal por días">
+      <section aria-label={t('progress.weeklyBreakdown')}>
         <WeeklyProgressDays days={weeklyProgress.days} />
       </section>
     </div>

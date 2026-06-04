@@ -84,7 +84,6 @@ async function ensureNotificationChannel(): Promise<void> {
 
 export async function checkPermissions(): Promise<NotificationPermissionState> {
   if (!isNativePlatform()) {
-    console.info('[notifications] Web: permisos no disponibles');
     return 'unsupported';
   }
 
@@ -99,7 +98,6 @@ export async function checkPermissions(): Promise<NotificationPermissionState> {
 
 export async function requestPermissions(): Promise<NotificationPermissionState> {
   if (!isNativePlatform()) {
-    console.info('[notifications] Web: solicitud de permisos omitida');
     return 'unsupported';
   }
 

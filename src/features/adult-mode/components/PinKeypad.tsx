@@ -1,4 +1,5 @@
 import { Delete } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/utils/cn';
 
 interface PinKeypadProps {
@@ -31,11 +32,13 @@ const deleteButtonClass = cn(
 );
 
 export function PinKeypad({ onDigit, onDelete, disabled = false, className }: PinKeypadProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       className={cn('mx-auto grid w-fit grid-cols-3 gap-x-5 gap-y-4', className)}
       role="group"
-      aria-label="Teclado numérico"
+      aria-label={t('pin.keypadAria')}
     >
       {DIGITS.map((key, index) => {
         if (key === '') {
@@ -49,7 +52,7 @@ export function PinKeypad({ onDigit, onDelete, disabled = false, className }: Pi
               type="button"
               disabled={disabled}
               onClick={onDelete}
-              aria-label="Borrar dígito"
+              aria-label={t('pin.deleteDigit')}
               className={deleteButtonClass}
             >
               <Delete className="h-7 w-7 md:h-8 md:w-8" aria-hidden />
@@ -63,7 +66,7 @@ export function PinKeypad({ onDigit, onDelete, disabled = false, className }: Pi
             type="button"
             disabled={disabled}
             onClick={() => onDigit(key)}
-            aria-label={`Dígito ${key}`}
+            aria-label={t('pin.digit', { digit: key })}
             className={digitButtonClass}
           >
             <span aria-hidden>{key}</span>
@@ -81,11 +84,13 @@ interface PinDotsProps {
 }
 
 export function PinDots({ length, filled, className }: PinDotsProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       className={cn('flex items-center justify-center gap-4', className)}
       role="status"
-      aria-label={`${filled} de ${length} dígitos introducidos`}
+      aria-label={t('pin.digitsEntered', { filled, length })}
     >
       {Array.from({ length }, (_, index) => (
         <span

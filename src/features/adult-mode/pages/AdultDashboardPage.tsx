@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ProfileAvatar } from '@/components/media/ProfileAvatar';
 import { Card } from '@/components/ui/Card';
 import { useAvatars } from '@/features/profiles/hooks/useAvatars';
@@ -81,6 +82,7 @@ function DashboardCardLink({
 }
 
 export function AdultDashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setUserMode = useAppStore((s) => s.setUserMode);
   const { activeProfile } = useProfiles();
@@ -90,49 +92,49 @@ export function AdultDashboardPage() {
   const cards: DashboardCard[] = [
     {
       to: '/profiles',
-      label: 'Perfiles',
-      description: 'Cambiar o editar perfiles de la familia',
+      label: t('adultMode.dashboard.profiles'),
+      description: t('adultMode.dashboard.profilesDesc'),
       icon: Users,
       iconClass: 'bg-violet-100 text-violet-700',
     },
     {
       to: '/agenda',
-      label: 'Agenda',
-      description: 'Ver y organizar las actividades del día',
+      label: t('nav.agenda'),
+      description: t('adultMode.dashboard.agendaDesc'),
       icon: CalendarDays,
       iconClass: 'bg-blue-100 text-blue-700',
     },
     {
       to: '/routines',
-      label: 'Rutinas',
-      description: 'Aplicar rutinas preparadas a la agenda',
+      label: t('nav.routines'),
+      description: t('adultMode.dashboard.routinesDesc'),
       icon: LayoutList,
       iconClass: 'bg-emerald-100 text-emerald-700',
     },
     {
       to: '/activities/new',
-      label: 'Crear actividad',
-      description: 'Añadir una actividad nueva al día',
+      label: t('adultMode.dashboard.createActivity'),
+      description: t('adultMode.dashboard.createActivityDesc'),
       icon: CalendarPlus,
       iconClass: 'bg-amber-100 text-amber-700',
     },
     {
       to: '/progress',
-      label: 'Progreso',
-      description: 'Revisar cómo va la semana',
+      label: t('nav.progress'),
+      description: t('adultMode.dashboard.progressDesc'),
       icon: TrendingUp,
       iconClass: 'bg-rose-100 text-rose-700',
     },
     {
       to: '/settings',
-      label: 'Ajustes',
-      description: 'Preferencias visuales y de la app',
+      label: t('nav.settings'),
+      description: t('adultMode.dashboard.settingsDesc'),
       icon: Settings,
       iconClass: 'bg-slate-100 text-slate-700',
     },
     {
-      label: 'Entrar en modo niño',
-      description: 'Pasar a la vista simple para la persona usuaria',
+      label: t('adultMode.dashboard.enterChild'),
+      description: t('adultMode.dashboard.enterChildDesc'),
       icon: Baby,
       iconClass: 'bg-sky-100 text-sky-700',
       onClick: () => {
@@ -145,18 +147,16 @@ export function AdultDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-violet-700">Panel familiar</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">Modo adulto</h1>
-        <p className="mt-2 text-slate-600">
-          Gestiona perfiles, actividades y preferencias de la familia.
-        </p>
+        <p className="text-sm font-semibold text-violet-700">{t('adultMode.familyPanel')}</p>
+        <h1 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">{t('adultMode.title')}</h1>
+        <p className="mt-2 text-slate-600">{t('adultMode.subtitle')}</p>
       </div>
 
       {activeProfile && (
         <Card padding="lg" className="flex items-center gap-4">
           <ProfileAvatar profile={activeProfile} size="md" avatars={avatars} />
           <div>
-            <p className="text-sm text-slate-500">Perfil activo</p>
+            <p className="text-sm text-slate-500">{t('adultMode.activeProfile')}</p>
             <p className="text-xl font-bold text-slate-900">{activeProfile.name}</p>
           </div>
         </Card>

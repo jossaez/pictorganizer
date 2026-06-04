@@ -4,6 +4,8 @@ import type { NavigateFunction } from 'react-router-dom';
 import { compactFutureInstancesIfNeeded } from '@/infrastructure/database/database-maintenance.service';
 import { syncInstanceWindow } from '@/infrastructure/database/instance-window-sync';
 import { syncActiveProfileNotificationsNextDays } from '@/infrastructure/notifications/notification-sync';
+import { refreshNativeStatusBar } from '@/infrastructure/mobile/status-bar.service';
+import { i18n } from '@/i18n';
 import { settingsRepository } from '@/infrastructure/repositories';
 import { useAppStore } from '@/store/app.store';
 import { todayISODate } from '@/utils/today';
@@ -53,6 +55,7 @@ async function handleForegroundResume(): Promise<void> {
   }
 
   syncActiveProfileNotificationsNextDays();
+  void refreshNativeStatusBar();
 }
 
 function handleBackButton(): void {
@@ -67,7 +70,7 @@ function handleBackButton(): void {
   }
 
   if (pathname === '/child' || pathname === '/child/day') {
-    const shouldExit = window.confirm('¿Quieres salir de PICTORGANIZER?');
+    const shouldExit = window.confirm(i18n.t('mobile.exitConfirm'));
     if (shouldExit) {
       void App.exitApp();
     }

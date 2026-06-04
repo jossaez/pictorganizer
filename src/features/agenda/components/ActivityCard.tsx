@@ -8,6 +8,7 @@ import {
   Smile,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   canComplete,
   canSkip,
@@ -70,6 +71,7 @@ export function ActivityCard({
   reduceMotion: reduceMotionProp = false,
   timerMode = 'off',
 }: ActivityCardProps) {
+  const { t } = useTranslation();
   const [detailOpen, setDetailOpen] = useState(false);
   const { largeText, reduceMotion: reduceMotionPref, text, buttonTouch } = useAccessibility();
   const effectiveReduceMotion = reduceMotionProp || reduceMotionPref;
@@ -99,9 +101,9 @@ export function ActivityCard({
   const visualSize = cardVisualSize(hero, compact);
 
   const completeLabel =
-    activity.computedState === 'missed' ? 'Marcar como hecha' : hero ? 'Hecho' : 'Hecho';
+    activity.computedState === 'missed' ? t('activity.markAsDone') : t('activity.done');
 
-  const completeAriaLabel = `Marcar ${activity.title} como hecha`;
+  const completeAriaLabel = t('activity.markCompleteAria', { title: activity.title });
 
   return (
     <article
@@ -177,12 +179,12 @@ export function ActivityCard({
           {activity.computedState === 'completed' && (
             <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-700">
               <Smile className="h-5 w-5" aria-hidden />
-              Hecho
+              {t('activity.done')}
             </p>
           )}
 
           {activity.isException && !hero && (
-            <p className="mt-1 text-xs font-medium text-amber-600">Solo para este día</p>
+            <p className="mt-1 text-xs font-medium text-amber-600">{t('activity.onlyToday')}</p>
           )}
 
           {activity.description && showDetailToggle && (
@@ -195,11 +197,11 @@ export function ActivityCard({
               >
                 {detailOpen ? (
                   <>
-                    Ocultar detalle <ChevronUp className="h-4 w-4" aria-hidden />
+                    {t('activity.hideDetail')} <ChevronUp className="h-4 w-4" aria-hidden />
                   </>
                 ) : (
                   <>
-                    Ver detalle <ChevronDown className="h-4 w-4" aria-hidden />
+                    {t('activity.showDetail')} <ChevronDown className="h-4 w-4" aria-hidden />
                   </>
                 )}
               </button>
@@ -265,10 +267,10 @@ export function ActivityCard({
             className="min-h-14 gap-2 text-base"
             disabled={disabled}
             onClick={() => onSkip!(activity.id)}
-            aria-label={`Saltar actividad ${activity.title}`}
+            aria-label={t('activity.skipActivityAria', { title: activity.title })}
           >
             <Forward className="h-5 w-5" aria-hidden />
-            Saltar
+            {t('activity.skip')}
           </Button>
         )}
 
@@ -279,10 +281,10 @@ export function ActivityCard({
             className={cn('min-h-14 gap-2 text-base', !compact && 'flex-1')}
             disabled={disabled}
             onClick={() => onUndo!(activity.id)}
-            aria-label={`Deshacer actividad ${activity.title}`}
+            aria-label={t('activity.undoActivityAria', { title: activity.title })}
           >
             <RotateCcw className="h-5 w-5" aria-hidden />
-            Deshacer
+            {t('activity.undo')}
           </Button>
         )}
 
@@ -292,10 +294,10 @@ export function ActivityCard({
             className="min-h-14 gap-2"
             disabled={disabled}
             onClick={() => onEdit(activity.id)}
-            aria-label={`Editar ${activity.title}`}
+            aria-label={t('activity.editAria', { title: activity.title })}
           >
             <Pencil className="h-5 w-5" aria-hidden />
-            Editar
+            {t('activity.edit')}
           </Button>
         )}
       </div>

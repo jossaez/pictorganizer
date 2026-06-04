@@ -1,16 +1,22 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { DeactivateProfileDialog } from '@/features/profiles/components/DeactivateProfileDialog';
 import { ProfileForm } from '@/features/profiles/components/ProfileForm';
 import { useProfiles } from '@/features/profiles/hooks/useProfiles';
+import {
+  persistProfilePhoto,
+  removeProfilePhoto,
+} from '@/features/profiles/services/profile-photo.service';
 import type { ProfileFormData } from '@/features/profiles/types/profile-form.types';
 import { profileRepository } from '@/infrastructure/repositories';
 import { useAppStore } from '@/store/app.store';
 
 export function EditProfilePage() {
+  const { t } = useTranslation();
   const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
   const userMode = useAppStore((s) => s.userMode);
@@ -53,7 +59,7 @@ export function EditProfilePage() {
   }
 
   async function handleSubmit(data: ProfileFormData): Promise<void> {
-    if (!profileId) return;
+    if (!profileId || !profile) return;
     const updated = await updateProfile(profileId, {
       name: data.name,
       color: data.color,
@@ -64,9 +70,21 @@ export function EditProfilePage() {
       showAnticipation: data.showAnticipation,
     });
 
-    if (updated) {
-      navigate('/profiles');
+    if (!updated) return;
+
+    let photoWarning: string | undefined;
+    try {
+      if (data.removePhoto && profile.photoUri) {
+        await removeProfilePhoto(profileId, profile.photoUri);
+      } else if (data.profilePhotoFile) {
+        await persistProfilePhoto(profileId, data.profilePhotoFile, profile.photoUri);
+      }
+    } catch (err) {
+      console.error('[EditProfilePage] photo save:', err);
+      photoWarning = t('onboarding.photoSaveFailed');
     }
+
+    navigate('/profiles', { state: photoWarning ? { photoWarning } : undefined });
   }
 
   async function handleDeactivate(): Promise<void> {
@@ -80,7 +98,7 @@ export function EditProfilePage() {
 
   if (!isAdultMode) {
     return (
-      <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8">
+      <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8">
         <Button variant="ghost" className="mb-4 gap-2 px-0" onClick={() => navigate('/profiles')}>
           <ArrowLeft className="h-5 w-5" aria-hidden />
           Volver
@@ -102,7 +120,7 @@ export function EditProfilePage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
       <div className="mx-auto w-full max-w-lg md:max-w-xl">
         <Button variant="ghost" className="mb-4 gap-2 px-0" onClick={() => navigate('/profiles')}>
           <ArrowLeft className="h-5 w-5" aria-hidden />
@@ -117,7 +135,6 @@ export function EditProfilePage() {
             {error}
           </p>
         )}
-
         <div className="mt-8">
           <ProfileForm
             mode="edit"

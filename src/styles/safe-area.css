@@ -1,0 +1,48 @@
+/**
+ * Safe area utilities — notch, status bar, home indicator, Dynamic Island.
+ * Requires viewport-fit=cover in index.html.
+ */
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  /** Matches app shell headers; used for Capacitor StatusBar background */
+  --shell-header-bg: #ffffff;
+}
+
+.safe-top {
+  padding-top: var(--safe-top);
+}
+
+.safe-bottom {
+  padding-bottom: var(--safe-bottom);
+}
+
+.safe-x {
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/**
+ * Native WebView: some devices report 0 inset while still drawing under the status bar.
+ * Minimum padding only on Capacitor (html.platform-native set at startup).
+ */
+html.platform-native .safe-top {
+  padding-top: max(var(--safe-top), 16px);
+}
+
+html.platform-native .safe-bottom {
+  padding-bottom: max(var(--safe-bottom), 12px);
+}
+
+/** Sticky shell header — never starts at y=0; includes status bar offset */
+.app-shell-header {
+  background-color: color-mix(in srgb, var(--shell-header-bg) 95%, transparent);
+}
+
+.app-shell-header--child {
+  background-color: color-mix(in srgb, var(--shell-header-bg) 95%, transparent);
+  border-bottom-color: rgb(219 234 254 / 0.8);
+}

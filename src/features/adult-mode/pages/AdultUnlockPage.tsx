@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyPin } from '@/domain/services/pin.service';
 import { PinDots, PinKeypad } from '@/features/adult-mode/components/PinKeypad';
@@ -10,6 +11,7 @@ import { cn } from '@/utils/cn';
 const PIN_LENGTH = 4;
 
 export function AdultUnlockPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const unlockAdultSession = useAppStore((s) => s.unlockAdultSession);
@@ -54,7 +56,7 @@ export function AdultUnlockPage() {
 
         const ok = await verifyPin(value, hash);
         if (!ok) {
-          setError('PIN incorrecto. Inténtalo de nuevo.');
+          setError(t('pin.wrong'));
           setPin('');
           return;
         }
@@ -64,13 +66,13 @@ export function AdultUnlockPage() {
         navigate(returnTo, { replace: true });
       } catch (err) {
         console.error('[AdultUnlockPage]', err);
-        setError('No se pudo verificar el PIN.');
+        setError(t('pin.verifyFailed'));
         setPin('');
       } finally {
         setIsVerifying(false);
       }
     },
-    [enterAdultMode, navigate, returnTo, unlockAdultSession],
+    [enterAdultMode, navigate, returnTo, t, unlockAdultSession],
   );
 
   function handleDigit(digit: string): void {
@@ -96,14 +98,12 @@ export function AdultUnlockPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-10">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-10">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col items-center justify-center">
         <h1 className="text-center text-2xl font-bold text-slate-900 md:text-3xl">
-          Introduce el PIN de adulto
+          {t('pin.unlockTitle')}
         </h1>
-        <p className="mt-2 text-center text-slate-600">
-          Solo las personas adultas pueden cambiar la agenda y los ajustes.
-        </p>
+        <p className="mt-2 text-center text-slate-600">{t('pin.unlockSubtitle')}</p>
 
         <PinDots filled={pin.length} length={PIN_LENGTH} className="mt-10" />
 
@@ -125,7 +125,7 @@ export function AdultUnlockPage() {
         <button
           type="button"
           onClick={handleBack}
-          aria-label="Volver al modo niño"
+          aria-label={t('pin.backAria')}
           className={cn(
             'a11y-focus-ring a11y-btn-touch flex min-h-14 w-full items-center justify-center gap-2',
             'rounded-2xl bg-white text-base font-semibold text-slate-700 ring-1 ring-slate-200',
@@ -133,7 +133,7 @@ export function AdultUnlockPage() {
           )}
         >
           <ArrowLeft className="h-5 w-5" aria-hidden />
-          Volver
+          {t('pin.back')}
         </button>
       </div>
     </div>

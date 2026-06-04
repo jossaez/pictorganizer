@@ -1,5 +1,6 @@
 import { LayoutList, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProfileAvatar } from '@/components/media/ProfileAvatar';
 import { DayTimeline } from '@/features/agenda/components/DayTimeline';
@@ -17,6 +18,7 @@ import { formatDisplayDate } from '@/utils/formatDate';
 import { cn } from '@/utils/cn';
 
 export function AgendaPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
@@ -65,8 +67,8 @@ export function AgendaPage() {
   if (!activeProfileId) {
     return (
       <div className="space-y-4 text-center">
-        <p className="text-slate-600">Selecciona un perfil para ver la agenda.</p>
-        <Button onClick={() => navigate('/profiles')}>Ir a perfiles</Button>
+        <p className="text-slate-600">{t('agenda.noProfile')}</p>
+        <Button onClick={() => navigate('/profiles')}>{t('agenda.goProfiles')}</Button>
       </div>
     );
   }
@@ -87,10 +89,10 @@ export function AgendaPage() {
             )}
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-                Agenda de
+                {t('agenda.agendaOf')}
               </p>
               <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">
-                {activeProfile?.name ?? 'Perfil activo'}
+                {activeProfile?.name ?? t('settings.activeProfile')}
               </h2>
               <p className="mt-1 capitalize text-slate-600">{formatDisplayDate(date)}</p>
             </div>
@@ -98,7 +100,7 @@ export function AgendaPage() {
           {isAdultMode && (
             <Button className="gap-2" onClick={() => navigate('/activities/new')}>
               <Plus className="h-5 w-5" aria-hidden />
-              Añadir actividad
+              {t('activity.add')}
             </Button>
           )}
         </div>
@@ -125,16 +127,16 @@ export function AgendaPage() {
       )}
 
       {isLoading ? (
-        <p className="text-slate-500">Cargando actividades…</p>
+        <p className="text-slate-500">{t('agenda.loading')}</p>
       ) : !hasActivities ? (
         <div className="rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-100">
           {isAdultMode ? (
             <>
-              <p className="text-lg text-slate-600">No hay actividades para este día.</p>
+              <p className="text-lg text-slate-600">{t('agenda.emptyDay')}</p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Button className="gap-2" onClick={() => navigate('/activities/new')}>
                   <Plus className="h-5 w-5" aria-hidden />
-                  Añadir actividad
+                  {t('activity.add')}
                 </Button>
                 <Button
                   variant="secondary"
@@ -142,12 +144,12 @@ export function AgendaPage() {
                   onClick={() => navigate('/routines')}
                 >
                   <LayoutList className="h-5 w-5" aria-hidden />
-                  Añadir rutina
+                  {t('routines.add')}
                 </Button>
               </div>
             </>
           ) : (
-            <p className="text-lg text-slate-600">Hoy no hay actividades programadas.</p>
+            <p className="text-lg text-slate-600">{t('agenda.emptyToday')}</p>
           )}
         </div>
       ) : (
@@ -160,7 +162,7 @@ export function AgendaPage() {
           )}
         >
           <div className={cn('space-y-6 md:space-y-8', isEffectiveTablet && !isChildMode && 'min-w-0')}>
-            <section aria-label="Ahora, después y más tarde">
+            <section aria-label={t('agenda.sectionNowNextLater')}>
               <NowNextLater
                 activities={activities}
                 currentTimeMinutes={currentTimeMinutes}
@@ -177,7 +179,7 @@ export function AgendaPage() {
               />
             </section>
 
-            <section aria-label="Progreso del día">
+            <section aria-label={t('agenda.sectionDayProgress')}>
               <DailyProgressCard
                 progress={progress}
                 userMode={userMode}
@@ -187,7 +189,7 @@ export function AgendaPage() {
           </div>
 
           {!isChildMode && (
-            <section aria-label="Timeline del día" className="min-w-0">
+            <section aria-label={t('agenda.sectionDayTimeline')} className="min-w-0">
               <DayTimeline
                 activities={enrichedActivities}
                 onComplete={handleComplete}

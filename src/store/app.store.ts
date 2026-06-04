@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { AppSettings } from '@/domain/types';
 import { DeviceLayout } from '@/domain/enums';
+import { DEFAULT_LANGUAGE, type SupportedLanguage } from '@/i18n/languages';
 import { todayISODate } from '@/utils/today';
 
 export type UserMode = 'child' | 'adult';
@@ -17,6 +18,7 @@ interface AppState {
   reduceMotion: boolean;
   largeText: boolean;
   highContrast: boolean;
+  language: SupportedLanguage;
   adultPinHash: string | null;
   requirePinForAdultMode: boolean;
   adultSessionActive: boolean;
@@ -36,6 +38,7 @@ interface AppState {
     highContrast?: boolean;
     preferredDeviceLayout?: DeviceLayout;
   }) => void;
+  setLanguage: (language: SupportedLanguage) => void;
   setPinSettings: (input: { adultPinHash?: string | null; requirePinForAdultMode?: boolean }) => void;
   unlockAdultSession: () => void;
   lockAdultSession: () => void;
@@ -52,6 +55,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   reduceMotion: false,
   largeText: false,
   highContrast: false,
+  language: DEFAULT_LANGUAGE,
   adultPinHash: null,
   requirePinForAdultMode: false,
   adultSessionActive: false,
@@ -67,6 +71,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       reduceMotion: settings.reduceMotion,
       largeText: settings.largeText,
       highContrast: settings.highContrast,
+      language: settings.language ?? DEFAULT_LANGUAGE,
       adultPinHash: settings.adultPinHash ?? null,
       requirePinForAdultMode: settings.requirePinForAdultMode ?? false,
     }),
@@ -82,6 +87,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   enterChildMode: () => set({ userMode: 'child' }),
 
   enterAdultMode: () => set({ userMode: 'adult' }),
+
+  setLanguage: (language) => set({ language }),
 
   setAccessibilitySettings: (input) =>
     set((state) => ({

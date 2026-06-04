@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { i18n } from '@/i18n';
 import { ActivityCard } from './ActivityCard';
 import { createMockActivityInstance } from '@/test/factories';
 import { renderWithProviders, screen, userEvent } from '@/test/test-utils';
@@ -38,7 +39,11 @@ describe('ActivityCard', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: /Marcar Paseo como hecha/i }));
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n.t('activity.markCompleteAria', { title: 'Paseo' }),
+      }),
+    );
     expect(onComplete).toHaveBeenCalledWith('act-1');
   });
 

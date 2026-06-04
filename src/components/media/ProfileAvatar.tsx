@@ -2,6 +2,7 @@ import type { Avatar, Profile } from '@/domain/types';
 import { getAvatarEmoji } from '@/domain/visual/pictogram-registry';
 import { getPhotoUri } from '@/infrastructure/filesystem/photo.storage';
 import { cn } from '@/utils/cn';
+import { useTranslation } from 'react-i18next';
 
 export type ProfileAvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -17,6 +18,8 @@ interface ProfileAvatarProps {
   size?: ProfileAvatarSize;
   className?: string;
   avatars?: Avatar[];
+  /** Vista previa local (p. ej. object URL durante edición) */
+  photoPreviewSrc?: string;
 }
 
 function getInitial(name: string): string {
@@ -29,18 +32,22 @@ export function ProfileAvatar({
   size = 'md',
   className,
   avatars = [],
+  photoPreviewSrc,
 }: ProfileAvatarProps) {
+  const { t } = useTranslation();
   const sizeClass = SIZE_CLASSES[size];
-  const photoSrc = profile.photoUri ? getPhotoUri(profile.photoUri) : undefined;
+  const photoSrc =
+    photoPreviewSrc ?? (profile.photoUri ? getPhotoUri(profile.photoUri) : undefined);
   const avatar = avatars.find((a) => a.id === profile.avatarId);
   const avatarEmoji = profile.avatarId ? getAvatarEmoji(profile.avatarId) : null;
+  const photoAlt = t('profiles.photoAlt', { name: profile.name });
 
   if (photoSrc) {
     return (
       <img
         src={photoSrc}
-        alt={`Foto de ${profile.name}`}
-        className={cn('shrink-0 rounded-2xl object-cover shadow-sm', sizeClass, className)}
+        alt={photoAlt}
+        className={cn('shrink-0 rounded-full object-cover shadow-sm', sizeClass, className)}
       />
     );
   }
@@ -49,13 +56,16 @@ export function ProfileAvatar({
     return (
       <div
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-2xl shadow-sm',
+          'flex shrink-0 items-center justify-center rounded-full shadow-sm',
           sizeClass,
           className,
         )}
         style={{ backgroundColor: profile.color }}
         role="img"
-        aria-label={`Avatar de ${profile.name}${avatar ? `: ${avatar.label}` : ''}`}
+        aria-label={t('profiles.avatarAria', {
+          name: profile.name,
+          label: avatar ? `: ${avatar.label}` : '',
+        })}
       >
         <span aria-hidden>{avatarEmoji}</span>
       </div>
@@ -65,12 +75,12 @@ export function ProfileAvatar({
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-2xl font-bold text-white shadow-sm',
+        'flex shrink-0 items-center justify-center rounded-full font-bold text-white shadow-sm',
         sizeClass,
         className,
       )}
       style={{ backgroundColor: profile.color }}
-      aria-label={`Perfil de ${profile.name}`}
+      aria-label={t('profiles.initialAria', { name: profile.name })}
     >
       {getInitial(profile.name)}
     </div>

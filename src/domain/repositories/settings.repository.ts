@@ -11,6 +11,7 @@ export type UpdateAppSettingsInput = Partial<
     | 'reduceMotion'
     | 'largeText'
     | 'highContrast'
+    | 'language'
     | 'schemaVersion'
   >
 >;

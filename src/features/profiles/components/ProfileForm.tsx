@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Profile, ProfileSettings } from '@/domain/types';
 import { Button } from '@/components/ui/Button';
 import { DetailLevelSelector } from '@/features/onboarding/components/DetailLevelSelector';
-import { ProfileAvatarPicker } from '@/features/profiles/components/ProfileAvatarPicker';
+import { ProfilePhotoPicker } from '@/features/onboarding/components/ProfilePhotoPicker';
 import { ProfileColorPicker } from '@/features/profiles/components/ProfileColorPicker';
-import { useProfileAvatars } from '@/features/profiles/hooks/useProfileAvatars';
+import { resolveProfilePhotoSrc } from '@/features/profiles/services/profile-photo.service';
 import {
   DEFAULT_PROFILE_FORM_DATA,
   type ProfileFormData,
@@ -40,18 +41,11 @@ function buildInitialForm(
       childModeDetailLevel: settings.childModeDetailLevel,
       showTimer: settings.showTimer,
       showAnticipation: settings.showAnticipation,
+      existingPhotoUri: profile.photoUri,
     };
   }
 
   return DEFAULT_PROFILE_FORM_DATA;
-}
-
-function validateForm(data: ProfileFormData): string | null {
-  const name = data.name.trim();
-  if (!name) return 'Introduce un nombre';
-  if (name.length < 2) return 'El nombre debe tener al menos 2 caracteres';
-  if (!data.color) return 'Selecciona un color';
-  return null;
 }
 
 export function ProfileForm({
@@ -64,15 +58,63 @@ export function ProfileForm({
   onSubmit,
   onCancel,
 }: ProfileFormProps) {
-  const { avatars, isLoading: avatarsLoading } = useProfileAvatars();
+  const { t } = useTranslation();
   const [form, setForm] = useState<ProfileFormData>(() =>
     buildInitialForm(initialData, initialProfile, initialSettings),
   );
   const [error, setError] = useState<string | null>(null);
 
+  const existingPhotoSrc =
+    !form.removePhoto && !form.profilePhotoPreviewUrl && form.existingPhotoUri
+      ? resolveProfilePhotoSrc(form.existingPhotoUri)
+      : undefined;
+
+  const previewUrl = form.removePhoto
+    ? null
+    : (form.profilePhotoPreviewUrl ?? existingPhotoSrc ?? null);
+
+  useEffect(() => {
+    return () => {
+      if (form.profilePhotoPreviewUrl) {
+        URL.revokeObjectURL(form.profilePhotoPreviewUrl);
+      }
+    };
+  }, [form.profilePhotoPreviewUrl]);
+
   function updateField<K extends keyof ProfileFormData>(key: K, value: ProfileFormData[K]): void {
     setForm((prev) => ({ ...prev, [key]: value }));
     setError(null);
+  }
+
+  function handlePhotoChange(file: File | null, objectUrl: string | null): void {
+    setForm((prev) => {
+      if (prev.profilePhotoPreviewUrl) {
+        URL.revokeObjectURL(prev.profilePhotoPreviewUrl);
+      }
+      if (!file) {
+        return {
+          ...prev,
+          profilePhotoFile: undefined,
+          profilePhotoPreviewUrl: undefined,
+          removePhoto: true,
+        };
+      }
+      return {
+        ...prev,
+        profilePhotoFile: file,
+        profilePhotoPreviewUrl: objectUrl ?? URL.createObjectURL(file),
+        removePhoto: false,
+      };
+    });
+    setError(null);
+  }
+
+  function validateForm(data: ProfileFormData): string | null {
+    const name = data.name.trim();
+    if (!name) return t('onboarding.validation.nameRequired');
+    if (name.length < 2) return t('onboarding.validation.nameMin');
+    if (!data.color) return t('onboarding.validation.color');
+    return null;
   }
 
   async function handleSubmit(): Promise<void> {
@@ -84,7 +126,8 @@ export function ProfileForm({
     await onSubmit({ ...form, name: form.name.trim() });
   }
 
-  const label = submitLabel ?? (mode === 'create' ? 'Crear perfil' : 'Guardar cambios');
+  const label =
+    submitLabel ?? (mode === 'create' ? t('profiles.create') : t('profiles.saveChanges'));
 
   return (
     <form
@@ -99,17 +142,16 @@ export function ProfileForm({
           {error}
         </p>
       )}
-
       <div>
         <label htmlFor="profile-name" className="text-sm font-medium text-slate-700">
-          Nombre
+          {t('profiles.name')}
         </label>
         <input
           id="profile-name"
           type="text"
           value={form.name}
           onChange={(e) => updateField('name', e.target.value)}
-          placeholder="Lucas"
+          placeholder={t('onboarding.stepName.placeholder')}
           maxLength={50}
           autoFocus={mode === 'create'}
           className={cn(
@@ -119,22 +161,23 @@ export function ProfileForm({
         />
       </div>
 
-      <ProfileColorPicker value={form.color} onChange={(color) => updateField('color', color)} />
+      <ProfilePhotoPicker
+        name={form.name}
+        color={form.color}
+        previewUrl={previewUrl}
+        onPhotoChange={handlePhotoChange}
+        translationPrefix="profiles.form"
+      />
 
-      {avatarsLoading ? (
-        <p className="text-slate-500">Cargando avatares…</p>
-      ) : (
-        <ProfileAvatarPicker
-          avatars={avatars}
-          selectedAvatarId={form.avatarId}
-          accentColor={form.color}
-          onSelectAvatar={(avatarId) => updateField('avatarId', avatarId)}
-        />
-      )}
+      <ProfileColorPicker
+        value={form.color}
+        onChange={(color) => updateField('color', color)}
+        titleKey="profiles.form.chooseColor"
+      />
 
       <div>
         <label htmlFor="profile-birthdate" className="text-sm font-medium text-slate-700">
-          Fecha de nacimiento <span className="font-normal text-slate-500">(opcional)</span>
+          {t('profiles.birthDate')}
         </label>
         <input
           id="profile-birthdate"
@@ -149,7 +192,7 @@ export function ProfileForm({
       </div>
 
       <div>
-        <p className="mb-4 text-sm font-medium text-slate-700">Nivel de detalle visual</p>
+        <p className="mb-4 text-sm font-medium text-slate-700">{t('onboarding.stepDetail.title')}</p>
         <DetailLevelSelector
           value={form.childModeDetailLevel}
           onChange={(childModeDetailLevel) => updateField('childModeDetailLevel', childModeDetailLevel)}
@@ -158,14 +201,14 @@ export function ProfileForm({
 
       <div className="space-y-3">
         <ToggleRow
-          label="Mostrar temporizador"
-          description="Muestra el tiempo restante en las actividades."
+          label={t('profiles.form.showTimer')}
+          description={t('profiles.form.showTimerHint')}
           checked={form.showTimer}
           onChange={(checked) => updateField('showTimer', checked)}
         />
         <ToggleRow
-          label="Mostrar anticipación"
-          description="Avisa antes de que empiece la siguiente actividad."
+          label={t('profiles.form.showAnticipation')}
+          description={t('profiles.form.showAnticipationHint')}
           checked={form.showAnticipation}
           onChange={(checked) => updateField('showAnticipation', checked)}
         />
@@ -173,10 +216,10 @@ export function ProfileForm({
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="secondary" className="flex-1" onClick={onCancel} disabled={isSubmitting}>
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button type="submit" className="flex-1" disabled={isSubmitting}>
-          {isSubmitting ? 'Guardando…' : label}
+          {isSubmitting ? t('common.loading') : label}
         </Button>
       </div>
     </form>

@@ -1,5 +1,6 @@
-import { CheckCircle2, Clock, Forward, Smile, XCircle, type LucideIcon } from 'lucide-react';
+import { CheckCircle2, Clock, Forward, XCircle, type LucideIcon } from 'lucide-react';
 import type { ComputedActivityState } from '@/domain/services/activity-state.service';
+import { i18n } from '@/i18n';
 
 export interface ActivityStatusPresentation {
   label: string;
@@ -11,13 +12,11 @@ export interface ActivityStatusPresentation {
   icon: LucideIcon;
 }
 
-export const ACTIVITY_STATUS_PRESENTATION: Record<
+const STATUS_STYLE: Record<
   ComputedActivityState,
-  ActivityStatusPresentation
+  Omit<ActivityStatusPresentation, 'label' | 'description'>
 > = {
   pending: {
-    label: 'Pendiente',
-    description: 'Actividad programada',
     colorClass: 'text-slate-700',
     badgeClass: 'a11y-status-badge bg-slate-100 text-slate-700',
     ringClass: 'ring-slate-100',
@@ -25,8 +24,6 @@ export const ACTIVITY_STATUS_PRESENTATION: Record<
     icon: Clock,
   },
   in_progress: {
-    label: 'En curso',
-    description: 'Es el momento de hacerla',
     colorClass: 'text-blue-800',
     badgeClass: 'a11y-status-badge bg-blue-100 text-blue-800',
     ringClass: 'ring-2 ring-[var(--color-primary)] shadow-md',
@@ -34,8 +31,6 @@ export const ACTIVITY_STATUS_PRESENTATION: Record<
     icon: Clock,
   },
   completed: {
-    label: 'Hecho',
-    description: 'Actividad completada',
     colorClass: 'text-emerald-800',
     badgeClass: 'a11y-status-badge bg-emerald-100 text-emerald-800',
     ringClass: 'ring-emerald-100',
@@ -43,8 +38,6 @@ export const ACTIVITY_STATUS_PRESENTATION: Record<
     icon: CheckCircle2,
   },
   skipped: {
-    label: 'Saltada',
-    description: 'Actividad saltada',
     colorClass: 'text-amber-800',
     badgeClass: 'a11y-status-badge bg-amber-100 text-amber-800',
     ringClass: 'ring-amber-100',
@@ -52,8 +45,6 @@ export const ACTIVITY_STATUS_PRESENTATION: Record<
     icon: Forward,
   },
   missed: {
-    label: 'No realizada',
-    description: 'Actividad pendiente pasada',
     colorClass: 'text-red-700',
     badgeClass: 'a11y-status-badge bg-red-50 text-red-700',
     ringClass: 'ring-red-100',
@@ -62,12 +53,26 @@ export const ACTIVITY_STATUS_PRESENTATION: Record<
   },
 };
 
+const STATUS_I18N_KEY: Record<ComputedActivityState, 'pending' | 'inProgress' | 'completed' | 'skipped' | 'missed'> = {
+  pending: 'pending',
+  in_progress: 'inProgress',
+  completed: 'completed',
+  skipped: 'skipped',
+  missed: 'missed',
+};
+
 export function getStatusPresentation(state: ComputedActivityState): ActivityStatusPresentation {
-  return ACTIVITY_STATUS_PRESENTATION[state];
+  const key = STATUS_I18N_KEY[state];
+  const style = STATUS_STYLE[state];
+  return {
+    ...style,
+    label: i18n.t(`activity.status.${key}`),
+    description: i18n.t(`activity.statusDesc.${key}`),
+  };
 }
 
 export function getStatusLabel(state: ComputedActivityState): string {
-  return ACTIVITY_STATUS_PRESENTATION[state].label;
+  return getStatusPresentation(state).label;
 }
 
 /** Large emoji for completed state in child-facing UI */

@@ -1,5 +1,6 @@
 import { APP_SETTINGS_ID, DeviceLayout, SyncStatus } from '../../../domain/enums';
 import type { AppSettings } from '../../../domain/types';
+import { DEFAULT_LANGUAGE } from '@/i18n/languages';
 import { db } from '../dexie.db';
 import {
   SEED_AVATARS,
@@ -12,6 +13,7 @@ export function createDefaultAppSettings(now: string = new Date().toISOString())
   return {
     id: APP_SETTINGS_ID,
     onboardingCompleted: false,
+    language: DEFAULT_LANGUAGE,
     requirePinForAdultMode: false,
     preferredDeviceLayout: DeviceLayout.Auto,
     reduceMotion: false,

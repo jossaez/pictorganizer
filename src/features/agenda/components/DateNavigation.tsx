@@ -1,4 +1,5 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { formatDisplayDate } from '@/utils/formatDate';
 import { todayISODate } from '@/utils/today';
@@ -12,6 +13,7 @@ interface DateNavigationProps {
 }
 
 export function DateNavigation({ date, onPrevious, onNext, onToday }: DateNavigationProps) {
+  const { t } = useTranslation();
   const isToday = date === todayISODate();
 
   return (
@@ -24,7 +26,7 @@ export function DateNavigation({ date, onPrevious, onNext, onToday }: DateNaviga
           variant="secondary"
           className="min-h-11 px-3"
           onClick={onPrevious}
-          aria-label="Día anterior"
+          aria-label={t('agenda.prevDay')}
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </Button>
@@ -33,16 +35,16 @@ export function DateNavigation({ date, onPrevious, onNext, onToday }: DateNaviga
           className={cn('min-h-11 gap-2', isToday && 'opacity-60')}
           onClick={onToday}
           disabled={isToday}
-          aria-label="Volver a hoy"
+          aria-label={t('agenda.backToToday')}
         >
           <CalendarDays className="h-4 w-4" aria-hidden />
-          Hoy
+          {t('agenda.today')}
         </Button>
         <Button
           variant="secondary"
           className="min-h-11 px-3"
           onClick={onNext}
-          aria-label="Día siguiente"
+          aria-label={t('agenda.nextDay')}
         >
           <ChevronRight className="h-5 w-5" aria-hidden />
         </Button>

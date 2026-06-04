@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ADULT_NAV_ITEMS } from '@/features/adult-mode/constants/adult-nav';
 import { cn } from '@/utils/cn';
 
@@ -7,11 +8,12 @@ interface AdultNavLinksProps {
 }
 
 export function AdultNavLinks({ layout }: AdultNavLinksProps) {
+  const { t } = useTranslation();
   const isSidebar = layout === 'sidebar';
 
   return (
     <>
-      {ADULT_NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+      {ADULT_NAV_ITEMS.map(({ to, labelKey, icon: Icon, end }) => (
         <NavLink
           key={to}
           to={to}
@@ -30,7 +32,7 @@ export function AdultNavLinks({ layout }: AdultNavLinksProps) {
           }
         >
           <Icon className={cn(isSidebar ? 'h-5 w-5' : 'h-6 w-6')} strokeWidth={2} aria-hidden />
-          <span>{label}</span>
+          <span>{t(labelKey)}</span>
         </NavLink>
       ))}
     </>

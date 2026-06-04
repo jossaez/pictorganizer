@@ -22,7 +22,7 @@ export function getPhotoUri(uri: string): string | undefined {
   return WEB_PHOTO_CACHE.get(uri);
 }
 
-export async function saveProfilePhoto(fileOrBlob: Blob, profileId: string): Promise<string> {
+export async function saveProfilePhoto(fileOrBlob: Blob | File, profileId: string): Promise<string> {
   const uri = buildProfilePhotoUri(profileId);
   const objectUrl = URL.createObjectURL(fileOrBlob);
   WEB_PHOTO_CACHE.set(uri, objectUrl);

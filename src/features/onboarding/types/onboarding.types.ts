@@ -1,13 +1,16 @@
 import type { ChildModeDetailLevel, DeviceLayout } from '@/domain/enums';
 
-export const ONBOARDING_STEP_COUNT = 8;
+export const ONBOARDING_STEP_COUNT = 9;
 
-export type OnboardingStepIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type OnboardingStepIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export interface OnboardingDraft {
   name: string;
+  /** Legacy; no longer required in onboarding */
   avatarId: string | null;
   color: string;
+  profilePhotoFile?: File;
+  profilePhotoPreviewUrl?: string;
   preferredDeviceLayout: DeviceLayout | null;
   childModeDetailLevel: ChildModeDetailLevel | null;
   selectedRoutineTemplateIds: string[];
@@ -25,21 +28,14 @@ export const DEFAULT_ONBOARDING_DRAFT: OnboardingDraft = {
   selectedRoutineTemplateIds: [],
 };
 
-export const PROFILE_COLOR_OPTIONS = [
-  { id: 'blue', value: '#5b8def', label: 'Azul' },
-  { id: 'pink', value: '#f472b6', label: 'Rosa' },
-  { id: 'green', value: '#34d399', label: 'Verde' },
-  { id: 'amber', value: '#fbbf24', label: 'Ámbar' },
-  { id: 'violet', value: '#a78bfa', label: 'Violeta' },
-] as const;
-
 export const ONBOARDING_STEP_LABELS = [
-  'Bienvenida',
-  'Nombre',
-  'Avatar',
-  'Dispositivo',
-  'Detalle',
-  'Rutinas',
-  'PIN',
-  'Confirmar',
+  'language',
+  'welcome',
+  'name',
+  'photoColor',
+  'device',
+  'detail',
+  'routines',
+  'pin',
+  'confirm',
 ] as const;

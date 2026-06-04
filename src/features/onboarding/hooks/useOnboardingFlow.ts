@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChildModeDetailLevel, DeviceLayout } from '@/domain/enums';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate } from 'react-router-dom';
-import type { Avatar, RoutineTemplate } from '@/domain/types';
+import type { RoutineTemplate } from '@/domain/types';
 import { completeOnboarding } from '@/features/onboarding/services/completeOnboarding';
 import {
   DEFAULT_ONBOARDING_DRAFT,
@@ -10,37 +10,41 @@ import {
   type OnboardingDraft,
   type OnboardingStepIndex,
 } from '@/features/onboarding/types/onboarding.types';
-import { db } from '@/infrastructure/database/dexie.db';
-import { SEED_AVATARS, SEED_ROUTINE_TEMPLATES } from '@/infrastructure/database/seeds/seed-data';
+import { i18n } from '@/i18n';
+import { SEED_ROUTINE_TEMPLATES } from '@/infrastructure/database/seeds/seed-data';
 import { routineRepository } from '@/infrastructure/repositories';
 import { useAppStore } from '@/store/app.store';
 
 function validateStep(step: OnboardingStepIndex, draft: OnboardingDraft): string | null {
   switch (step) {
     case 0:
+    case 1:
       return null;
-    case 1: {
+    case 2: {
       const name = draft.name.trim();
-      if (!name) return 'Introduce un nombre';
-      if (name.length < 2) return 'El nombre debe tener al menos 2 caracteres';
+      if (!name) return i18n.t('onboarding.validation.nameRequired');
+      if (name.length < 2) return i18n.t('onboarding.validation.nameMin');
       return null;
     }
-    case 2:
-      if (!draft.avatarId) return 'Selecciona un avatar';
-      if (!draft.color) return 'Selecciona un color';
-      return null;
     case 3:
-      if (!draft.preferredDeviceLayout) return 'Selecciona un tipo de dispositivo';
+      if (!draft.color) return i18n.t('onboarding.validation.color');
       return null;
     case 4:
-      if (!draft.childModeDetailLevel) return 'Selecciona un nivel de detalle';
+      if (!draft.preferredDeviceLayout) return i18n.t('onboarding.validation.device');
       return null;
     case 5:
+      if (!draft.childModeDetailLevel) return i18n.t('onboarding.validation.detail');
       return null;
     case 6:
-      return null;
     case 7:
-      return validateStep(1, draft) ?? validateStep(2, draft) ?? validateStep(3, draft) ?? validateStep(4, draft);
+      return null;
+    case 8:
+      return (
+        validateStep(2, draft) ??
+        validateStep(3, draft) ??
+        validateStep(4, draft) ??
+        validateStep(5, draft)
+      );
     default:
       return null;
   }
@@ -57,13 +61,15 @@ export function useOnboardingFlow() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const avatarsFromDb = useLiveQuery(() => db.avatars.orderBy('sortOrder').toArray(), [], []);
-  const templatesFromDb = useLiveQuery(() => routineRepository.getAllRoutineTemplates(), [], []);
+  useEffect(() => {
+    return () => {
+      if (draft.profilePhotoPreviewUrl) {
+        URL.revokeObjectURL(draft.profilePhotoPreviewUrl);
+      }
+    };
+  }, [draft.profilePhotoPreviewUrl]);
 
-  const avatars: Avatar[] = useMemo(() => {
-    if (avatarsFromDb && avatarsFromDb.length > 0) return avatarsFromDb;
-    return SEED_AVATARS;
-  }, [avatarsFromDb]);
+  const templatesFromDb = useLiveQuery(() => routineRepository.getAllRoutineTemplates(), [], []);
 
   const routineTemplates: RoutineTemplate[] = useMemo(() => {
     const fromDb = templatesFromDb ?? [];
@@ -82,6 +88,28 @@ export function useOnboardingFlow() {
 
   const updateDraft = useCallback((patch: Partial<OnboardingDraft>) => {
     setDraft((prev) => ({ ...prev, ...patch }));
+    setSubmitError(null);
+  }, []);
+
+  const updateProfilePhoto = useCallback((file: File | null, previewUrl: string | null) => {
+    setDraft((prev) => {
+      if (prev.profilePhotoPreviewUrl) {
+        URL.revokeObjectURL(prev.profilePhotoPreviewUrl);
+      }
+      if (!file) {
+        return {
+          ...prev,
+          profilePhotoFile: undefined,
+          profilePhotoPreviewUrl: undefined,
+        };
+      }
+      return {
+        ...prev,
+        profilePhotoFile: file,
+        profilePhotoPreviewUrl: previewUrl ?? URL.createObjectURL(file),
+        avatarId: null,
+      };
+    });
     setSubmitError(null);
   }, []);
 
@@ -111,7 +139,7 @@ export function useOnboardingFlow() {
   }, []);
 
   const submit = useCallback(async (): Promise<boolean> => {
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 2; i <= 5; i++) {
       const err = validateStep(i as OnboardingStepIndex, draft);
       if (err) {
         setSubmitError(err);
@@ -127,12 +155,15 @@ export function useOnboardingFlow() {
       hydrateFromSettings(result.settings);
       setOnboardingCompleted(true);
       enterChildMode();
-      navigate('/child', { replace: true });
+      navigate('/child', {
+        replace: true,
+        state: result.photoSaveWarning ? { photoWarning: result.photoSaveWarning } : undefined,
+      });
       return true;
     } catch (err) {
       console.error('[useOnboardingFlow] submit:', err);
       setSubmitError(
-        err instanceof Error ? err.message : 'No se pudo crear la agenda. Inténtalo de nuevo.',
+        err instanceof Error ? err.message : i18n.t('onboarding.submitError'),
       );
       return false;
     } finally {
@@ -141,22 +172,22 @@ export function useOnboardingFlow() {
   }, [draft, enterChildMode, hydrateFromSettings, navigate, setOnboardingCompleted]);
 
   const routinesRecommended =
-    step === 5 && draft.selectedRoutineTemplateIds.length === 0
-      ? 'Te recomendamos seleccionar al menos una rutina para empezar.'
+    step === 6 && draft.selectedRoutineTemplateIds.length === 0
+      ? i18n.t('onboarding.routinesRecommended')
       : null;
 
   return {
     step,
     draft,
-    avatars,
     routineTemplates,
     stepError,
     canGoNext,
     routinesRecommended,
     submitError,
     isSubmitting,
-    isLoadingCatalog: avatarsFromDb === undefined || templatesFromDb === undefined,
+    isLoadingCatalog: templatesFromDb === undefined,
     updateDraft,
+    updateProfilePhoto,
     goNext,
     goBack,
     toggleRoutine,
@@ -168,25 +199,25 @@ export function useOnboardingFlow() {
 export function detailLevelLabel(level: ChildModeDetailLevel | null): string {
   switch (level) {
     case ChildModeDetailLevel.Minimal:
-      return 'Simple';
+      return i18n.t('detailLevel.minimal');
     case ChildModeDetailLevel.Standard:
-      return 'Medio';
+      return i18n.t('detailLevel.standard');
     case ChildModeDetailLevel.Detailed:
-      return 'Completo';
+      return i18n.t('detailLevel.detailed');
     default:
-      return '—';
+      return i18n.t('common.dash');
   }
 }
 
 export function deviceLayoutLabel(layout: DeviceLayout | null): string {
   switch (layout) {
     case DeviceLayout.Phone:
-      return 'Móvil';
+      return i18n.t('device.phone');
     case DeviceLayout.Tablet:
-      return 'Tablet';
+      return i18n.t('device.tablet');
     case DeviceLayout.Auto:
-      return 'Automático';
+      return i18n.t('device.auto');
     default:
-      return '—';
+      return i18n.t('common.dash');
   }
 }

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChildModeDetailLevel } from '@/domain/enums';
 import { canComplete } from '@/domain/services/activity-completion.service';
 import type { ActivityInstance } from '@/domain/types';
@@ -71,6 +72,7 @@ function SlotCard({
   childDetail,
   largeText,
 }: SlotCardProps) {
+  const { t } = useTranslation();
   const isHero = variant === 'hero';
 
   if (!activity) {
@@ -136,9 +138,7 @@ function SlotCard({
           hero={childMode || isHero}
         />
         {childMode && actionable && canComplete(ctx) && (
-          <p className="sr-only">
-            Pulsa el botón grande para marcar {activity.title} como completada
-          </p>
+          <p className="sr-only">{t('activity.childMarkCompleteHint', { title: activity.title })}</p>
         )}
       </div>
     );
@@ -194,9 +194,9 @@ function SlotCard({
               className="a11y-focus-ring min-h-10 rounded-xl px-3 text-sm font-medium text-[var(--color-primary)] ring-1 ring-slate-200"
               disabled={disabled}
               onClick={() => onEdit(activity.id)}
-              aria-label={`Editar ${activity.title}`}
+              aria-label={t('activity.editAria', { title: activity.title })}
             >
-              Editar
+              {t('activity.edit')}
             </button>
           )}
           {onSkip && (
@@ -205,9 +205,9 @@ function SlotCard({
               className="a11y-focus-ring min-h-10 rounded-xl px-3 text-sm font-medium text-slate-600 ring-1 ring-slate-200"
               disabled={disabled}
               onClick={() => onSkip(activity.id)}
-              aria-label={`Saltar ${activity.title}`}
+              aria-label={t('activity.skipAria', { title: activity.title })}
             >
-              Saltar
+              {t('activity.skip')}
             </button>
           )}
         </div>
@@ -230,6 +230,7 @@ export function NowNextLater({
   disabled,
   reduceMotion: reduceMotionProp = false,
 }: NowNextLaterProps) {
+  const { t } = useTranslation();
   const { largeText, reduceMotion: reduceMotionPref } = useAccessibility();
   const reduceMotion = reduceMotionProp || reduceMotionPref;
   const childMode = userMode === 'child';
@@ -266,10 +267,10 @@ export function NowNextLater({
         role="status"
       >
         <p className={cn('font-bold text-emerald-900', childMode ? 'text-2xl' : 'text-xl')}>
-          Hoy ya está todo completado
+          {t('agenda.dayAllCompleteShort')}
         </p>
         {!childMode && (
-          <p className="mt-2 text-sm text-emerald-700">Todas las actividades del día están hechas.</p>
+          <p className="mt-2 text-sm text-emerald-700">{t('agenda.allDone')}</p>
         )}
       </div>
     );
@@ -290,12 +291,12 @@ export function NowNextLater({
         !childMode && isEffectiveTablet && 'grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4',
         !childMode && !isEffectiveTablet && 'gap-4',
       )}
-      aria-label="Anticipación del día"
+      aria-label={t('agenda.anticipationAria')}
     >
       <SlotCard
-          label="Ahora"
+          label={t('agenda.now')}
           activity={nowActivity}
-          emptyMessage="No hay actividad ahora"
+          emptyMessage={t('agenda.nowEmpty')}
           childMode={childMode}
           userMode={userMode}
           showDetail={showDetail}
@@ -314,9 +315,9 @@ export function NowNextLater({
         />
 
       <SlotCard
-        label="Después"
+        label={t('agenda.next')}
         activity={nextActivity}
-        emptyMessage="No hay más actividades programadas"
+        emptyMessage={t('agenda.anticipationEmpty')}
         childMode={childMode}
         userMode={userMode}
         showDetail={false}
@@ -333,9 +334,9 @@ export function NowNextLater({
       />
 
       <SlotCard
-        label="Más tarde"
+        label={t('agenda.later')}
         activity={laterActivity}
-        emptyMessage="No hay más actividades programadas"
+        emptyMessage={t('agenda.anticipationEmpty')}
         childMode={childMode}
         userMode={userMode}
         showDetail={false}

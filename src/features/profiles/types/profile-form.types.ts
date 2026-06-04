@@ -8,6 +8,10 @@ export interface ProfileFormData {
   childModeDetailLevel: ChildModeDetailLevel;
   showTimer: boolean;
   showAnticipation: boolean;
+  profilePhotoFile?: File;
+  profilePhotoPreviewUrl?: string;
+  removePhoto?: boolean;
+  existingPhotoUri?: string;
 }
 
 export const DEFAULT_PROFILE_FORM_DATA: ProfileFormData = {

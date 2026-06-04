@@ -1,5 +1,6 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useWeekActivitySummary } from '@/features/agenda/hooks/useWeekActivitySummary';
 import type { WeekDaySummary } from '@/features/agenda/hooks/useWeekActivitySummary';
 import { useAppStore } from '@/store/app.store';
@@ -17,18 +18,21 @@ interface WeekNavigatorProps {
   onToday: () => void;
 }
 
-function buildAriaLabel(day: WeekDaySummary): string {
+function buildAriaLabel(
+  day: WeekDaySummary,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
   const parts = [formatDayLabel(day.date)];
   if (day.hasActivities) {
     parts.push(
-      `${day.totalActivities} actividad${day.totalActivities === 1 ? '' : 'es'}`,
-      `${day.completedActivities} completada${day.completedActivities === 1 ? '' : 's'}`,
+      t('agenda.dayAriaActivities', { count: day.totalActivities }),
+      t('agenda.dayAriaCompleted', { count: day.completedActivities }),
     );
   } else {
-    parts.push('sin actividades');
+    parts.push(t('agenda.dayAriaEmpty'));
   }
-  if (day.isToday) parts.push('hoy');
-  if (day.isSelected) parts.push('seleccionado');
+  if (day.isToday) parts.push(t('agenda.today'));
+  if (day.isSelected) parts.push(t('agenda.dayAriaSelected'));
   return parts.join(', ');
 }
 
@@ -38,12 +42,14 @@ function DayButton({
   variant,
   buttonRef,
   largeText,
+  t,
 }: {
   day: WeekDaySummary;
   onSelect: (date: string) => void;
   variant: 'compact' | 'expanded';
   buttonRef?: React.RefObject<HTMLButtonElement | null>;
   largeText: boolean;
+  t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
   const isCompact = variant === 'compact';
 
@@ -52,7 +58,7 @@ function DayButton({
       ref={day.isSelected ? buttonRef : undefined}
       type="button"
       onClick={() => onSelect(day.date)}
-      aria-label={buildAriaLabel(day)}
+      aria-label={buildAriaLabel(day, t)}
       aria-current={day.isSelected ? 'date' : undefined}
       aria-selected={day.isSelected}
       className={cn(
@@ -83,7 +89,7 @@ function DayButton({
             day.isSelected ? 'opacity-90' : 'bg-blue-200 text-blue-800',
           )}
         >
-          Hoy
+          {t('agenda.today')}
         </span>
       )}
 
@@ -94,10 +100,10 @@ function DayButton({
             day.isSelected ? 'text-white/90' : 'text-slate-500',
           )}
         >
-          {day.totalActivities} actividad{day.totalActivities === 1 ? '' : 'es'}
+          {t('agenda.dayActivityCount', { count: day.totalActivities })}
           {day.completedActivities > 0 && (
             <span className={cn('block', day.isSelected ? 'opacity-90' : 'text-emerald-600')}>
-              {day.completedActivities} hecha{day.completedActivities === 1 ? '' : 's'}
+              {t('agenda.dayCompletedCount', { count: day.completedActivities })}
             </span>
           )}
         </span>
@@ -123,6 +129,7 @@ export function WeekNavigator({
   onNextWeek,
   onToday,
 }: WeekNavigatorProps) {
+  const { t } = useTranslation();
   const setSelectedDate = useAppStore((s) => s.setSelectedDate);
   const { days, isLoading } = useWeekActivitySummary(profileId, selectedDate);
   const { largeText, reduceMotion } = useAccessibility();
@@ -142,13 +149,13 @@ export function WeekNavigator({
   }
 
   return (
-    <nav className="space-y-3" aria-label="Navegación semanal">
+    <nav className="space-y-3" aria-label={t('agenda.weekNavAria')}>
       <div className="flex items-center justify-between gap-2">
         <Button
           variant="secondary"
           className="a11y-focus-ring min-h-10 px-3"
           onClick={onPreviousWeek}
-          aria-label="Semana anterior"
+          aria-label={t('progress.weekPreviousAria')}
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </Button>
@@ -158,24 +165,24 @@ export function WeekNavigator({
           className={cn('a11y-focus-ring min-h-10 gap-1.5 text-sm', isOnToday && 'opacity-60')}
           onClick={onToday}
           disabled={isOnToday}
-          aria-label="Ir a hoy"
+          aria-label={t('agenda.goToTodayAria')}
         >
           <CalendarDays className="h-4 w-4" aria-hidden />
-          Hoy
+          {t('agenda.today')}
         </Button>
 
         <Button
           variant="secondary"
           className="a11y-focus-ring min-h-10 px-3"
           onClick={onNextWeek}
-          aria-label="Semana siguiente"
+          aria-label={t('progress.weekNextAria')}
         >
           <ChevronRight className="h-5 w-5" aria-hidden />
         </Button>
       </div>
 
       {isLoading ? (
-        <p className="text-center text-sm text-slate-500">Cargando semana…</p>
+        <p className="text-center text-sm text-slate-500">{t('agenda.weekLoading')}</p>
       ) : (
         <>
           <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:hidden" role="list">
@@ -187,6 +194,7 @@ export function WeekNavigator({
                   variant="compact"
                   buttonRef={selectedRef}
                   largeText={largeText}
+                  t={t}
                 />
               </div>
             ))}
@@ -201,6 +209,7 @@ export function WeekNavigator({
                   variant="expanded"
                   buttonRef={selectedRef}
                   largeText={largeText}
+                  t={t}
                 />
               </div>
             ))}

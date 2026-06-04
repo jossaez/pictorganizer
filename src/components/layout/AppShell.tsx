@@ -10,8 +10,8 @@ export function AppShell() {
   const largeText = useAppStore((s) => s.largeText);
 
   return (
-    <div className={cn('flex min-h-full flex-col bg-[var(--color-bg)]', largeText && 'text-lg')}>
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+    <div className={cn('safe-top safe-x flex min-h-full flex-col bg-[var(--color-bg)]', largeText && 'text-lg')}>
+      <header className="app-shell-header sticky top-0 z-40 border-b border-slate-200/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 md:max-w-5xl md:px-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">

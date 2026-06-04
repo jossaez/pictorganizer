@@ -1,26 +1,31 @@
-import { CalendarHeart } from 'lucide-react';
 import { ProfileAvatar } from '@/components/media/ProfileAvatar';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { PinSetupFlow } from '@/features/adult-mode/components/PinSetupFlow';
-import { OnboardingLayout } from '@/features/onboarding/components/OnboardingLayout';
-import { AvatarPicker } from '@/features/onboarding/components/AvatarPicker';
 import { DeviceLayoutSelector } from '@/features/onboarding/components/DeviceLayoutSelector';
+import { ProfilePhotoPicker } from '@/features/onboarding/components/ProfilePhotoPicker';
+import { ProfileColorPicker } from '@/features/profiles/components/ProfileColorPicker';
 import { DetailLevelSelector } from '@/features/onboarding/components/DetailLevelSelector';
 import { InitialRoutinesSelector } from '@/features/onboarding/components/InitialRoutinesSelector';
+import { OnboardingLayout } from '@/features/onboarding/components/OnboardingLayout';
+import { OnboardingWelcomeStep } from '@/features/onboarding/components/OnboardingWelcomeStep';
 import {
   detailLevelLabel,
   deviceLayoutLabel,
   useOnboardingFlow,
 } from '@/features/onboarding/hooks/useOnboardingFlow';
+import { LanguageSelectionPage } from '@/features/onboarding/pages/LanguageSelectionPage';
 import { ONBOARDING_STEP_COUNT } from '@/features/onboarding/types/onboarding.types';
-import { Card } from '@/components/ui/Card';
+import { useAppStore } from '@/store/app.store';
 import { cn } from '@/utils/cn';
+import { useTranslation } from 'react-i18next';
 
 export function OnboardingPage() {
+  const { t } = useTranslation();
+  const language = useAppStore((s) => s.language);
   const {
     step,
     draft,
-    avatars,
     routineTemplates,
     stepError,
     canGoNext,
@@ -29,6 +34,7 @@ export function OnboardingPage() {
     isSubmitting,
     isLoadingCatalog,
     updateDraft,
+    updateProfilePhoto,
     goNext,
     goBack,
     toggleRoutine,
@@ -36,8 +42,8 @@ export function OnboardingPage() {
   } = useOnboardingFlow();
 
   const selectedRoutineNames = routineTemplates
-    .filter((t) => draft.selectedRoutineTemplateIds.includes(t.id))
-    .map((t) => t.name);
+    .filter((tpl) => draft.selectedRoutineTemplateIds.includes(tpl.id))
+    .map((tpl) => tpl.name);
 
   function handleNext(): void {
     if (step === ONBOARDING_STEP_COUNT - 1) {
@@ -47,14 +53,22 @@ export function OnboardingPage() {
     goNext();
   }
 
+  const nextLabel =
+    step === 1
+      ? t('common.start')
+      : step === ONBOARDING_STEP_COUNT - 1
+        ? t('onboarding.createAgenda')
+        : t('common.continue');
+
   return (
     <OnboardingLayout
       currentStep={step}
       totalSteps={ONBOARDING_STEP_COUNT}
+      welcomeMode={step === 1}
       showBack={step > 0}
-      showNext
-      nextLabel={step === 0 ? 'Empezar' : step === ONBOARDING_STEP_COUNT - 1 ? 'Crear agenda' : 'Continuar'}
-      nextDisabled={!canGoNext || isSubmitting || (step >= 2 && isLoadingCatalog)}
+      showNext={step !== 0}
+      nextLabel={nextLabel}
+      nextDisabled={!canGoNext || isSubmitting || (step === 6 && isLoadingCatalog)}
       isLoading={isSubmitting}
       onBack={goBack}
       onNext={handleNext}
@@ -78,31 +92,25 @@ export function OnboardingPage() {
       )}
 
       {step === 0 && (
-        <div className="text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-[var(--color-primary)] text-white shadow-lg">
-            <CalendarHeart className="h-10 w-10" aria-hidden />
-          </div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-primary)]">
-            PICTORGANIZER
-          </p>
-          <h1 className="mt-3 text-3xl font-bold text-slate-900">Bienvenida</h1>
-          <p className="mx-auto mt-4 max-w-sm text-lg leading-relaxed text-slate-600">
-            Vamos a crear una agenda visual para organizar el día con más calma y claridad.
-          </p>
-        </div>
+        <LanguageSelectionPage
+          selectedLanguage={language}
+          onSelected={() => goNext()}
+        />
       )}
 
-      {step === 1 && (
+      {step === 1 && <OnboardingWelcomeStep />}
+
+      {step === 2 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">¿Cómo se llama?</h1>
-          <p className="mt-2 text-slate-600">Usaremos este nombre para personalizar la agenda.</p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepName.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepName.hint')}</p>
           <label className="mt-8 block">
-            <span className="sr-only">Nombre</span>
+            <span className="sr-only">{t('onboarding.stepName.label')}</span>
             <input
               type="text"
               value={draft.name}
               onChange={(e) => updateDraft({ name: e.target.value })}
-              placeholder="Lucas"
+              placeholder={t('onboarding.stepName.placeholder')}
               autoFocus
               maxLength={50}
               className={cn(
@@ -114,30 +122,29 @@ export function OnboardingPage() {
         </div>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Avatar y color</h1>
-          <p className="mt-2 text-slate-600">Elige cómo se verá el perfil en la agenda.</p>
-          <div className="mt-6">
-            {isLoadingCatalog ? (
-              <p className="text-slate-500">Cargando avatares…</p>
-            ) : (
-              <AvatarPicker
-                avatars={avatars}
-                selectedAvatarId={draft.avatarId}
-                selectedColor={draft.color}
-                onSelectAvatar={(avatarId) => updateDraft({ avatarId })}
-                onSelectColor={(color) => updateDraft({ color })}
-              />
-            )}
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepPhotoColor.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepPhotoColor.hint')}</p>
+          <div className="mt-6 space-y-8">
+            <ProfilePhotoPicker
+              name={draft.name}
+              color={draft.color}
+              previewUrl={draft.profilePhotoPreviewUrl}
+              onPhotoChange={updateProfilePhoto}
+            />
+            <ProfileColorPicker
+              value={draft.color}
+              onChange={(color) => updateDraft({ color })}
+            />
           </div>
         </div>
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Tipo de dispositivo</h1>
-          <p className="mt-2 text-slate-600">Podrás cambiarlo más adelante desde ajustes.</p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepDevice.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepDevice.hint')}</p>
           <div className="mt-6">
             <DeviceLayoutSelector
               value={draft.preferredDeviceLayout}
@@ -147,10 +154,10 @@ export function OnboardingPage() {
         </div>
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Nivel de detalle</h1>
-          <p className="mt-2 text-slate-600">Elige cuánta información verá en la agenda.</p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepDetail.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepDetail.hint')}</p>
           <div className="mt-6">
             <DetailLevelSelector
               value={draft.childModeDetailLevel}
@@ -160,15 +167,13 @@ export function OnboardingPage() {
         </div>
       )}
 
-      {step === 5 && (
+      {step === 6 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Rutinas iniciales</h1>
-          <p className="mt-2 text-slate-600">
-            Selecciona las rutinas que quieres añadir a la agenda (opcional, pero recomendado).
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepRoutines.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepRoutines.hint')}</p>
           <div className="mt-6">
             {isLoadingCatalog ? (
-              <p className="text-slate-500">Cargando rutinas…</p>
+              <p className="text-slate-500">{t('onboarding.loadingRoutines')}</p>
             ) : (
               <InitialRoutinesSelector
                 templates={routineTemplates}
@@ -180,26 +185,22 @@ export function OnboardingPage() {
         </div>
       )}
 
-      {step === 6 && (
+      {step === 7 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Crear PIN de adulto</h1>
-          <p className="mt-2 text-slate-600">
-            Protege los ajustes y la edición de la agenda. Opcional, pero recomendado.
-          </p>
-          <p className="mt-2 text-sm font-medium text-slate-700">
-            Escribe un PIN de 4 números y repítelo después para confirmarlo.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepPin.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepPin.hint')}</p>
+          <p className="mt-2 text-sm font-medium text-slate-700">{t('onboarding.stepPin.instructions')}</p>
           <div className="mt-6">
             {draft.adultPinHash ? (
               <div className="rounded-2xl bg-emerald-50 px-4 py-4 text-center">
-                <p className="font-semibold text-emerald-800">PIN configurado</p>
-                <p className="mt-1 text-sm text-emerald-700">Pulsa Continuar para seguir.</p>
+                <p className="font-semibold text-emerald-800">{t('onboarding.stepPin.configured')}</p>
+                <p className="mt-1 text-sm text-emerald-700">{t('onboarding.stepPin.continueHint')}</p>
               </div>
             ) : (
               <>
                 <PinSetupFlow
-                  title="Elige 4 números"
-                  description="Lo escribirás dos veces: primero el PIN y luego la misma combinación para confirmar."
+                  title={t('onboarding.stepPin.chooseTitle')}
+                  description={t('onboarding.stepPin.chooseDescription')}
                   onComplete={(hash) => updateDraft({ adultPinHash: hash, pinSkipped: false })}
                 />
                 <Button
@@ -211,11 +212,11 @@ export function OnboardingPage() {
                     goNext();
                   }}
                 >
-                  Omitir por ahora
+                  {t('onboarding.stepPin.skip')}
                 </Button>
                 {draft.pinSkipped && (
                   <p className="mt-3 text-center text-sm text-slate-600">
-                    Podrás configurarlo más adelante desde Ajustes.
+                    {t('onboarding.stepPin.skipLater')}
                   </p>
                 )}
               </>
@@ -224,46 +225,66 @@ export function OnboardingPage() {
         </div>
       )}
 
-      {step === 7 && (
+      {step === 8 && (
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Todo listo</h1>
-          <p className="mt-2 text-slate-600">Revisa la configuración antes de crear la agenda.</p>
+          <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t('onboarding.stepSummary.title')}</h1>
+          <p className="mt-2 text-slate-600">{t('onboarding.stepSummary.hint')}</p>
           <Card className="mt-6 space-y-4" padding="lg">
-            <SummaryRow label="Nombre" value={draft.name.trim() || '—'} />
+            <SummaryRow label={t('onboarding.stepSummary.name')} value={draft.name.trim() || t('common.dash')} />
             <div className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Avatar / color</p>
-              {draft.avatarId ? (
-                <div className="mt-2 flex items-center gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {t('onboarding.stepSummary.photoColor')}
+              </p>
+              <div className="mt-2 flex items-center gap-3">
+                {draft.profilePhotoPreviewUrl ? (
+                  <img
+                    src={draft.profilePhotoPreviewUrl}
+                    alt={t('onboarding.stepPhotoColor.photoAlt', {
+                      name: draft.name.trim() || t('common.profile'),
+                    })}
+                    className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm"
+                  />
+                ) : (
                   <ProfileAvatar
                     profile={{
-                      name: draft.name.trim() || 'Perfil',
-                      avatarId: draft.avatarId,
+                      name: draft.name.trim() || t('common.profile'),
                       color: draft.color,
+                      avatarId: draft.avatarId ?? undefined,
                     }}
                     size="sm"
-                    avatars={avatars}
+                    className="!rounded-full"
                   />
-                  <span className="text-base font-medium text-slate-900">
-                    {avatars.find((a) => a.id === draft.avatarId)?.label ?? draft.avatarId}
-                  </span>
-                </div>
-              ) : (
-                <p className="mt-1 text-base font-medium text-slate-900">—</p>
-              )}
+                )}
+                <span className="text-base font-medium text-slate-900">
+                  {draft.profilePhotoPreviewUrl
+                    ? t('onboarding.stepSummary.photoAdded')
+                    : t('onboarding.stepSummary.initialColor')}
+                </span>
+              </div>
             </div>
-            <SummaryRow label="Dispositivo" value={deviceLayoutLabel(draft.preferredDeviceLayout)} />
-            <SummaryRow label="Detalle visual" value={detailLevelLabel(draft.childModeDetailLevel)} />
             <SummaryRow
-              label="Rutinas"
+              label={t('onboarding.stepSummary.device')}
+              value={deviceLayoutLabel(draft.preferredDeviceLayout)}
+            />
+            <SummaryRow
+              label={t('onboarding.stepSummary.detail')}
+              value={detailLevelLabel(draft.childModeDetailLevel)}
+            />
+            <SummaryRow
+              label={t('onboarding.stepSummary.routines')}
               value={
                 selectedRoutineNames.length > 0
                   ? selectedRoutineNames.join(', ')
-                  : 'Ninguna (podrás añadirlas después)'
+                  : t('onboarding.stepSummary.routinesNone')
               }
             />
             <SummaryRow
-              label="PIN de adulto"
-              value={draft.adultPinHash ? 'Configurado' : 'Sin configurar'}
+              label={t('onboarding.stepSummary.pin')}
+              value={
+                draft.adultPinHash
+                  ? t('onboarding.stepSummary.pinConfigured')
+                  : t('onboarding.stepSummary.pinNotConfigured')
+              }
             />
           </Card>
         </div>

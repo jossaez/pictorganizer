@@ -5,7 +5,6 @@
   --color-surface: #ffffff;
   --color-primary: #5b8def;
   --color-primary-dark: #4a78d4;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 html,
@@ -116,3 +115,44 @@ body {
     animation: none;
   }
 }
+
+/* ── Onboarding welcome ─────────────────────────────────────── */
+@keyframes onboarding-welcome-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+html[data-reduce-motion='false'] .onboarding-welcome-float {
+  animation: onboarding-welcome-float 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-reduce-motion='false'] .onboarding-welcome-float {
+    animation: none;
+  }
+}
+
+.high-contrast .onboarding-welcome-screen {
+  background: linear-gradient(180deg, #dbeafe 0%, #cbd5e1 100%);
+}
+
+.high-contrast .onboarding-welcome-card {
+  border: 2px solid #64748b;
+  box-shadow: none;
+}
+
+/* Prepared for future dark theme tokens */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --onboarding-welcome-from: #0f172a;
+    --onboarding-welcome-to: #1e293b;
+    --onboarding-welcome-card: #334155;
+    --onboarding-welcome-text: #f1f5f9;
+  }
+}
+

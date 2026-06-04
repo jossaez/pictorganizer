@@ -1,4 +1,5 @@
 import { Baby, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { ProfileAvatar } from '@/components/media/ProfileAvatar';
 import { AdultNavLinks } from '@/features/adult-mode/components/AdultNavLinks';
@@ -11,6 +12,7 @@ import { cn } from '@/utils/cn';
 
 /** Shell layout for Modo Adulto — redirects children to /child */
 export function AdultModeLayout() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const userMode = useAppStore((s) => s.userMode);
   const setUserMode = useAppStore((s) => s.setUserMode);
@@ -29,19 +31,19 @@ export function AdultModeLayout() {
   }
 
   return (
-    <div className="flex min-h-full bg-[var(--color-bg)]">
+    <div className="safe-top safe-x flex min-h-full bg-[var(--color-bg)]">
       <aside
         className={cn(
           'w-56 shrink-0 border-r border-slate-200 bg-white flex-col',
           isEffectiveTablet ? 'flex' : 'hidden',
         )}
-        aria-label="Navegación lateral"
+        aria-label={t('nav.sideAria')}
       >
         <div className="border-b border-slate-100 px-4 py-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
-            Modo adulto
+            {t('shell.modeAdult')}
           </p>
-          <p className="mt-1 text-sm font-bold text-slate-900">PICTORGANIZER</p>
+          <p className="mt-1 text-sm font-bold text-slate-900">{t('app.name')}</p>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
           <AdultNavLinks layout="sidebar" />
@@ -53,13 +55,13 @@ export function AdultModeLayout() {
             className="a11y-focus-ring flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-blue-700 hover:bg-blue-50"
           >
             <Baby className="h-5 w-5" aria-hidden />
-            Modo niño
+            {t('adultMode.childMode')}
           </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+        <header className="app-shell-header sticky top-0 z-40 border-b border-slate-200/80 backdrop-blur-md">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 md:max-w-none md:px-6">
             <Link
               to="/profiles"
@@ -70,9 +72,9 @@ export function AdultModeLayout() {
               )}
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-slate-900">
-                  {activeProfile?.name ?? 'Sin perfil'}
+                  {activeProfile?.name ?? t('adultMode.noProfile')}
                 </p>
-                <p className="text-xs text-slate-500">Perfil activo</p>
+                <p className="text-xs text-slate-500">{t('adultMode.activeProfile')}</p>
               </div>
             </Link>
 
@@ -83,7 +85,7 @@ export function AdultModeLayout() {
                 className="a11y-focus-ring hidden rounded-xl px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 sm:inline-flex sm:items-center sm:gap-2"
               >
                 <Baby className="h-4 w-4" aria-hidden />
-                Modo niño
+                {t('adultMode.childMode')}
               </button>
               <Link
                 to="/settings"
@@ -91,7 +93,7 @@ export function AdultModeLayout() {
                   'a11y-focus-ring flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800',
                   isEffectiveTablet && 'hidden',
                 )}
-                aria-label="Ajustes"
+                aria-label={t('nav.settings')}
               >
                 <Settings className="h-5 w-5" aria-hidden />
               </Link>
@@ -113,11 +115,10 @@ export function AdultModeLayout() {
 
         <nav
           className={cn(
-            'fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-md',
+            'safe-bottom fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 pb-2 backdrop-blur-md',
             isEffectiveTablet && 'hidden',
           )}
-          style={{ paddingBottom: 'max(0.5rem, var(--safe-bottom))' }}
-          aria-label="Navegación principal"
+          aria-label={t('nav.mainAria')}
         >
           <div className="mx-auto flex max-w-3xl items-stretch justify-around px-2 pt-2">
             <AdultNavLinks layout="bottom" />

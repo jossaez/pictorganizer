@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { initApp } from './initApp';
 import { DatabaseErrorState } from '@/components/feedback/DatabaseErrorState';
+import { i18n, initI18n } from '@/i18n';
+import { DEFAULT_LANGUAGE } from '@/i18n/languages';
 import { syncActiveProfileNotificationsNextDays } from '@/infrastructure/notifications/notification-sync';
 import { useAppStore } from '@/store/app.store';
 
@@ -12,9 +14,9 @@ interface AppBootstrapProps {
 
 function LoadingScreen() {
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-[var(--color-bg)] px-6">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col items-center justify-center bg-[var(--color-bg)] px-6">
       <div className="h-10 w-10 animate-pulse rounded-full bg-[var(--color-primary)]/30" />
-      <p className="mt-4 text-slate-600">Cargando PICTORGANIZER…</p>
+      <p className="mt-4 text-slate-600">{i18n.t('app.loading')}</p>
     </div>
   );
 }
@@ -22,7 +24,7 @@ function LoadingScreen() {
 function ErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <DatabaseErrorState
-      title="No se pudo iniciar la app"
+      title={i18n.t('errors.appInitTitle')}
       message={message}
       onRetry={onRetry}
       showSettingsLink={false}
@@ -41,17 +43,22 @@ export function AppBootstrap({ children }: AppBootstrapProps) {
   async function bootstrap(): Promise<void> {
     setStatus('loading');
     setErrorMessage('');
+    await initI18n(DEFAULT_LANGUAGE);
 
     const result = await initApp();
 
     if (result.ok) {
+      const language = result.settings.language ?? DEFAULT_LANGUAGE;
+      await initI18n(language);
       hydrateFromSettings(result.settings);
       enterChildMode();
       lockAdultSession();
       setBootstrapped(true);
       setStatus('ready');
       if (result.seeded) {
-        console.info('[bootstrap] Catalog seeded on first run');
+        if (import.meta.env.DEV) {
+          console.info('[bootstrap] Catalog seeded on first run');
+        }
       }
       syncActiveProfileNotificationsNextDays();
       return;

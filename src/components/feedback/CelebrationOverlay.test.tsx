@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { i18n } from '@/i18n';
 import { CelebrationOverlay } from './CelebrationOverlay';
 import { CelebrationStyle } from '@/domain/enums';
 import { useAppStore } from '@/store/app.store';
@@ -36,6 +37,6 @@ describe('CelebrationOverlay', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('¡Muy bien!')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cerrar celebración' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: i18n.t('celebration.close') })).toBeInTheDocument();
   });
 });

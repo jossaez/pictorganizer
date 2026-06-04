@@ -1,5 +1,6 @@
 import { Check, Pencil, Plus, UserRound } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ProfileAvatar } from '@/components/media/ProfileAvatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -11,7 +12,12 @@ import { useAccessibility } from '@/hooks/useAccessibility';
 import { useAppStore } from '@/store/app.store';
 import { cn } from '@/utils/cn';
 
+type ProfilesLocationState = { photoWarning?: string };
+
 export function ProfileSelectionPage() {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const photoWarning = (location.state as ProfilesLocationState | null)?.photoWarning;
   const navigate = useNavigate();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const userMode = useAppStore((s) => s.userMode);
@@ -28,14 +34,20 @@ export function ProfileSelectionPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
       <div className={cn('mx-auto w-full', isEffectiveTablet ? 'max-w-4xl' : 'max-w-lg')}>
         <h1 className={cn('font-bold text-slate-900', largeText ? text['3xl'] : 'text-2xl md:text-3xl')}>
-          ¿Para quién es la agenda?
+          {t('profiles.selectTitle')}
         </h1>
         <p className={cn('mt-2 text-slate-600', largeText ? text.lg : 'text-base')}>
-          Elige un perfil o crea uno nuevo para la familia.
+          {t('profiles.selectSubtitle')}
         </p>
+
+        {photoWarning && (
+          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+            {photoWarning}
+          </p>
+        )}
 
         {error && (
           <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
@@ -44,15 +56,15 @@ export function ProfileSelectionPage() {
         )}
 
         {isLoading ? (
-          <p className="mt-8 text-slate-500">Cargando perfiles…</p>
+          <p className="mt-8 text-slate-500">{t('profiles.loadingProfiles')}</p>
         ) : profiles.length === 0 ? (
           <div className="mt-8 rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-100">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
               <UserRound className="h-8 w-8" aria-hidden />
             </div>
-            <p className="text-lg text-slate-600">Todavía no hay perfiles creados.</p>
+            <p className="text-lg text-slate-600">{t('profiles.empty')}</p>
             <Button fullWidth className="mt-6" onClick={() => navigate('/profiles/new')} disabled={isMutating}>
-              Crear primer perfil
+              {t('profiles.createFirst')}
             </Button>
           </div>
         ) : (
@@ -89,18 +101,18 @@ export function ProfileSelectionPage() {
                           {isActive && (
                             <Badge variant="info" className="gap-1">
                               <Check className="h-3 w-3" aria-hidden />
-                              Activo
+                              {t('profiles.active')}
                             </Badge>
                           )}
                         </div>
-                        <p className="mt-1 text-sm text-slate-500">Toca para abrir la agenda</p>
+                        <p className="mt-1 text-sm text-slate-500">{t('profiles.tapAgenda')}</p>
                       </div>
 
                       {isAdultMode && (
                         <Link
                           to={`/profiles/${profile.id}/edit`}
                           className="a11y-focus-ring flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-800"
-                          aria-label={`Editar perfil de ${profile.name}`}
+                          aria-label={t('profiles.editProfileAria', { name: profile.name })}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Pencil className="h-5 w-5" aria-hidden />
@@ -114,9 +126,13 @@ export function ProfileSelectionPage() {
                       variant={isActive ? 'secondary' : 'primary'}
                       onClick={() => void handleSelect(profile.id)}
                       disabled={isMutating}
-                      aria-label={isActive ? `Abrir agenda de ${profile.name}` : `Seleccionar perfil de ${profile.name}`}
+                      aria-label={
+                        isActive
+                          ? t('profiles.openAgendaAria', { name: profile.name })
+                          : t('profiles.selectProfileAria', { name: profile.name })
+                      }
                     >
-                      {isActive ? 'Abrir agenda' : 'Seleccionar'}
+                      {isActive ? t('profiles.openAgenda') : t('common.select')}
                     </Button>
                   </Card>
                 </li>
@@ -134,7 +150,7 @@ export function ProfileSelectionPage() {
             disabled={isMutating}
           >
             <Plus className="h-5 w-5" aria-hidden />
-            Añadir perfil
+            {t('profiles.addProfile')}
           </Button>
         )}
       </div>

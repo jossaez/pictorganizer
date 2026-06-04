@@ -1,12 +1,15 @@
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { ProfileForm } from '@/features/profiles/components/ProfileForm';
 import { useProfiles } from '@/features/profiles/hooks/useProfiles';
+import { persistProfilePhoto } from '@/features/profiles/services/profile-photo.service';
 import type { ProfileFormData } from '@/features/profiles/types/profile-form.types';
 import { useAppStore } from '@/store/app.store';
 
 export function CreateProfilePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const userMode = useAppStore((s) => s.userMode);
   const { profiles, createProfile, isMutating, error } = useProfiles();
@@ -24,14 +27,33 @@ export function CreateProfilePage() {
       showAnticipation: data.showAnticipation,
     });
 
-    if (profile) {
-      navigate(userMode === 'child' ? '/child' : '/agenda', { replace: true });
+    if (!profile) return;
+
+    let photoWarning: string | undefined;
+    if (data.profilePhotoFile) {
+      try {
+        await persistProfilePhoto(profile.id, data.profilePhotoFile);
+      } catch (err) {
+        console.error('[CreateProfilePage] photo save:', err);
+        photoWarning = t('onboarding.photoSaveFailed');
+      }
     }
+
+    const target = userMode === 'child' ? '/child' : '/agenda';
+    navigate(target, {
+      replace: true,
+      state:
+        photoWarning && target === '/child'
+          ? { photoWarning }
+          : photoWarning
+            ? { message: photoWarning }
+            : undefined,
+    });
   }
 
   if (!isAdultMode && !isSetupFlow) {
     return (
-      <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8">
+      <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8">
         <Button variant="ghost" className="mb-4 gap-2 px-0" onClick={() => navigate('/profiles')}>
           <ArrowLeft className="h-5 w-5" aria-hidden />
           Volver
@@ -42,7 +64,7 @@ export function CreateProfilePage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
       <div className="mx-auto w-full max-w-lg md:max-w-xl">
         <Button variant="ghost" className="mb-4 gap-2 px-0" onClick={() => navigate('/profiles')}>
           <ArrowLeft className="h-5 w-5" aria-hidden />
@@ -57,7 +79,6 @@ export function CreateProfilePage() {
             {error}
           </p>
         )}
-
         <div className="mt-8">
           <ProfileForm
             mode="create"

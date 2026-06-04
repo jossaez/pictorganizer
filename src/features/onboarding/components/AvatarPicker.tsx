@@ -1,6 +1,7 @@
 import { UserRound } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Avatar } from '@/domain/types';
-import { PROFILE_COLOR_OPTIONS } from '@/features/onboarding/types/onboarding.types';
+import { PROFILE_COLOR_OPTIONS } from '@/features/profiles/constants/profile-colors';
 import { cn } from '@/utils/cn';
 
 interface AvatarPickerProps {
@@ -18,10 +19,12 @@ export function AvatarPicker({
   onSelectAvatar,
   onSelectColor,
 }: AvatarPickerProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-8">
       <div>
-        <p className="mb-4 text-sm font-medium text-slate-700">Elige un avatar</p>
+        <p className="mb-4 text-sm font-medium text-slate-700">{t('onboarding.stepAvatar.chooseAvatar')}</p>
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-3">
           {avatars.map((avatar) => {
             const selected = selectedAvatarId === avatar.id;
@@ -53,13 +56,13 @@ export function AvatarPicker({
       </div>
 
       <div>
-        <p className="mb-4 text-sm font-medium text-slate-700">Color principal</p>
+        <p className="mb-4 text-sm font-medium text-slate-700">{t('onboarding.stepAvatar.chooseColor')}</p>
         <ul className="flex flex-wrap gap-3">
           {PROFILE_COLOR_OPTIONS.map((option) => (
             <li key={option.id}>
               <button
                 type="button"
-                aria-label={option.label}
+                aria-label={t(option.labelKey)}
                 onClick={() => onSelectColor(option.value)}
                 className={cn(
                   'h-12 w-12 rounded-full ring-offset-2 transition-transform hover:scale-105',

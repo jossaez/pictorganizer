@@ -1,4 +1,5 @@
 import { ArrowLeft, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { ActivityForm } from '@/features/activities/components/ActivityForm';
@@ -9,6 +10,7 @@ import { useAppStore } from '@/store/app.store';
 import { todayISODate } from '@/utils/today';
 
 export function CreateActivityPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const selectedDate = useAppStore((s) => s.selectedDate);
@@ -18,7 +20,7 @@ export function CreateActivityPage() {
 
   if (!activeProfileId) {
     return (
-      <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8">
+      <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8">
         <p className="text-slate-600">Selecciona un perfil para crear actividades.</p>
         <Button className="mt-4" onClick={() => navigate('/profiles')}>
           Ir a perfiles
@@ -33,13 +35,13 @@ export function CreateActivityPage() {
       setSelectedDate(form.startDate);
       navigate('/agenda', {
         replace: true,
-        state: { message: 'Actividad creada' },
+        state: { message: t('activity.flash.created') },
       });
     }
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
+    <div className="safe-top safe-x safe-bottom flex min-h-full flex-col bg-[var(--color-bg)] px-4 py-8 md:px-8">
       <div className="mx-auto w-full max-w-lg md:max-w-xl">
         <Button variant="ghost" className="mb-4 gap-2 px-0" onClick={() => navigate('/agenda')}>
           <ArrowLeft className="h-5 w-5" aria-hidden />

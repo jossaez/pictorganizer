@@ -16,9 +16,17 @@ describe('DexieSettingsRepository', () => {
 
     expect(settings.id).toBe(APP_SETTINGS_ID);
     expect(settings.onboardingCompleted).toBe(false);
+    expect(settings.language).toBe('es');
     expect(settings.largeText).toBe(false);
     expect(settings.reduceMotion).toBe(false);
     expect(settings.requirePinForAdultMode).toBe(false);
+  });
+
+  it('updateAppSettings persiste idioma', async () => {
+    await repository.getOrCreateAppSettings();
+
+    const updated = await repository.updateAppSettings({ language: 'en' });
+    expect(updated.language).toBe('en');
   });
 
   it('updateAppSettings persiste preferencias globales', async () => {

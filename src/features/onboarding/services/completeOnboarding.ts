@@ -1,8 +1,10 @@
 import { ChildModeDetailLevel } from '@/domain/enums';
 import type { AppSettings } from '@/domain/types';
 import type { OnboardingDraft } from '@/features/onboarding/types/onboarding.types';
+import { persistProfilePhoto } from '@/features/profiles/services/profile-photo.service';
 import { applyRoutineToProfile } from '@/features/routines/services/applyRoutineToProfile';
 import { getRoutineAnchorMinutes } from '@/features/routines/constants/routine-config';
+import { i18n } from '@/i18n';
 import { profileRepository, settingsRepository } from '@/infrastructure/repositories';
 
 const ONBOARDING_INSTANCE_DAYS = 90;
@@ -27,20 +29,30 @@ export interface CompleteOnboardingResult {
   profileId: string;
   settings: AppSettings;
   instancesCreated: number;
+  photoSaveWarning?: string;
 }
 
 export async function completeOnboarding(
   draft: OnboardingDraft,
 ): Promise<CompleteOnboardingResult> {
-  if (!draft.avatarId) throw new Error('Selecciona un avatar');
-  if (!draft.preferredDeviceLayout) throw new Error('Selecciona un tipo de dispositivo');
-  if (!draft.childModeDetailLevel) throw new Error('Selecciona un nivel de detalle');
+  if (!draft.color) throw new Error(i18n.t('onboarding.validation.color'));
+  if (!draft.preferredDeviceLayout) throw new Error(i18n.t('onboarding.validation.device'));
+  if (!draft.childModeDetailLevel) throw new Error(i18n.t('onboarding.validation.detail'));
 
   const { profile } = await profileRepository.createProfile({
     name: draft.name.trim(),
     color: draft.color,
-    avatarId: draft.avatarId,
   });
+
+  let photoSaveWarning: string | undefined;
+  if (draft.profilePhotoFile) {
+    try {
+      await persistProfilePhoto(profile.id, draft.profilePhotoFile);
+    } catch (err) {
+      console.error('[completeOnboarding] photo save:', err);
+      photoSaveWarning = i18n.t('onboarding.photoSaveFailed');
+    }
+  }
 
   const timerPrefs = timerSettingsForDetailLevel(draft.childModeDetailLevel);
   await profileRepository.updateProfileSettings(profile.id, {
@@ -68,5 +80,5 @@ export async function completeOnboarding(
     instancesCreated += result.instancesCreated;
   }
 
-  return { profileId: profile.id, settings, instancesCreated };
+  return { profileId: profile.id, settings, instancesCreated, photoSaveWarning };
 }

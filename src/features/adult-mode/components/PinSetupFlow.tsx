@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { hashPin, verifyPin } from '@/domain/services/pin.service';
 import { PinDots, PinKeypad } from '@/features/adult-mode/components/PinKeypad';
 import { cn } from '@/utils/cn';
@@ -15,11 +16,15 @@ interface PinSetupFlowProps {
 }
 
 export function PinSetupFlow({
-  title = 'Crea un PIN de 4 dígitos',
-  description = 'Lo usarás para entrar en el modo adulto.',
+  title,
+  description,
   onComplete,
   className,
 }: PinSetupFlowProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t('pin.setupTitle');
+  const resolvedDescription = description ?? t('pin.setupDescription');
+
   const [phase, setPhase] = useState<SetupPhase>('enter');
   const [firstPin, setFirstPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -36,7 +41,7 @@ export function PinSetupFlow({
         const pinHash = await hashPin(confirmed);
         onComplete(pinHash);
       } catch {
-        setError('No se pudo guardar el PIN.');
+        setError(t('pin.setupSaveFailed'));
         setFirstPin('');
         setConfirmPin('');
         setPhase('enter');
@@ -44,7 +49,7 @@ export function PinSetupFlow({
         setIsSaving(false);
       }
     },
-    [onComplete],
+    [onComplete, t],
   );
 
   function handleDigit(digit: string): void {
@@ -65,7 +70,7 @@ export function PinSetupFlow({
     setError(null);
     if (next.length === PIN_LENGTH) {
       if (next !== firstPin) {
-        setError('Los PIN no coinciden. Vuelve a intentarlo.');
+        setError(t('pin.setupMismatch'));
         setFirstPin('');
         setConfirmPin('');
         setPhase('enter');
@@ -88,12 +93,10 @@ export function PinSetupFlow({
   return (
     <div className={cn('space-y-6', className)}>
       <div>
-        <h2 className="text-xl font-bold text-slate-900">{title}</h2>
-        <p className="mt-2 text-slate-600">{description}</p>
+        <h2 className="text-xl font-bold text-slate-900">{resolvedTitle}</h2>
+        <p className="mt-2 text-slate-600">{resolvedDescription}</p>
         <p className="mt-1 text-sm font-medium text-slate-500">
-          {phase === 'enter'
-            ? 'Paso 1 de 2: introduce el PIN'
-            : 'Paso 2 de 2: repite el mismo PIN para confirmar'}
+          {phase === 'enter' ? t('pin.setupStep1') : t('pin.setupStep2')}
         </p>
       </div>
 
@@ -117,10 +120,13 @@ interface PinVerifyFlowProps {
 }
 
 export function PinVerifyFlow({
-  title = 'Introduce el PIN actual',
+  title,
   pinHash,
   onVerified,
 }: PinVerifyFlowProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t('pin.verifyCurrent');
+
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -132,13 +138,13 @@ export function PinVerifyFlow({
       const ok = await verifyPin(value, pinHash);
       setIsVerifying(false);
       if (!ok) {
-        setError('PIN incorrecto.');
+        setError(t('pin.wrongShort'));
         setPin('');
         return;
       }
       onVerified();
     },
-    [onVerified, pinHash],
+    [onVerified, pinHash, t],
   );
 
   function handleDigit(digit: string): void {
@@ -153,7 +159,7 @@ export function PinVerifyFlow({
 
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+      <h3 className="text-lg font-bold text-slate-900">{resolvedTitle}</h3>
       <PinDots filled={pin.length} length={PIN_LENGTH} />
       {error && (
         <p className="text-center text-sm text-red-700" role="alert">

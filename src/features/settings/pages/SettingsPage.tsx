@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import { useCallback, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ProfileAvatar } from '@/components/media/ProfileAvatar';
 import { Button } from '@/components/ui/Button';
@@ -10,12 +11,14 @@ import { ResetAppDialog } from '@/features/settings/components/ResetAppDialog';
 import { AdultPinSettings } from '@/features/settings/components/AdultPinSettings';
 import { LockAdultModeButton } from '@/features/adult-mode/components/LockAdultModeButton';
 import {
-  CELEBRATION_STYLE_LABELS,
-  CHILD_DETAIL_LEVEL_LABELS,
-  DEVICE_LAYOUT_LABELS,
-  NOTIFICATION_TIMING_OPTIONS,
-  TIMER_STYLE_LABELS,
+  CELEBRATION_STYLE_LABEL_KEYS,
+  CHILD_DETAIL_LEVEL_LABEL_KEYS,
+  DEVICE_LAYOUT_LABEL_KEYS,
+  NOTIFICATION_TIMING_LABEL_KEYS,
+  TIMER_STYLE_LABEL_KEYS,
 } from '@/features/settings/constants/settings-labels';
+import { LanguageSelectionPage } from '@/features/onboarding/pages/LanguageSelectionPage';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useDatabaseMaintenance, useDatabaseSummary } from '@/features/settings/hooks/useDatabaseMaintenance';
 import { useNotificationReminders } from '@/features/settings/hooks/useNotificationReminders';
 import { useSettings } from '@/features/settings/hooks/useSettings';
@@ -52,6 +55,8 @@ function SettingsSection({
 }
 
 export function SettingsPage() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const activeProfileId = useAppStore((s) => s.activeProfileId);
   const setUserMode = useAppStore((s) => s.setUserMode);
@@ -75,27 +80,27 @@ export function SettingsPage() {
 
   const celebrationOptions = Object.values(CelebrationStyle).map((value) => ({
     value,
-    label: CELEBRATION_STYLE_LABELS[value],
+    label: t(CELEBRATION_STYLE_LABEL_KEYS[value]),
   }));
 
   const timerOptions = Object.values(TimerStyle).map((value) => ({
     value,
-    label: TIMER_STYLE_LABELS[value],
+    label: t(TIMER_STYLE_LABEL_KEYS[value]),
   }));
 
   const detailOptions = Object.values(ChildModeDetailLevel).map((value) => ({
     value,
-    label: CHILD_DETAIL_LEVEL_LABELS[value],
+    label: t(CHILD_DETAIL_LEVEL_LABEL_KEYS[value]),
   }));
 
   const deviceOptions = Object.values(DeviceLayout).map((value) => ({
     value,
-    label: DEVICE_LAYOUT_LABELS[value],
+    label: t(DEVICE_LAYOUT_LABEL_KEYS[value]),
   }));
 
-  const notificationTimingOptions = NOTIFICATION_TIMING_OPTIONS.map((opt) => ({
+  const notificationTimingOptions = NOTIFICATION_TIMING_LABEL_KEYS.map((opt) => ({
     value: String(opt.value),
-    label: opt.label,
+    label: t(opt.labelKey),
   }));
 
   const [reminderMessage, setReminderMessage] = useState<string | null>(null);
@@ -114,10 +119,8 @@ export function SettingsPage() {
   } = useDatabaseMaintenance();
 
   const handlePermissionDenied = useCallback(() => {
-    setReminderMessage(
-      'Para recibir recordatorios de actividades, permite las notificaciones en este dispositivo.',
-    );
-  }, []);
+    setReminderMessage(t('settings.allowNotificationsHint'));
+  }, [t]);
 
   const notificationsEnabled = profileSettings?.notificationsEnabled ?? false;
 
@@ -161,7 +164,7 @@ export function SettingsPage() {
     setReminderMessage(null);
     const granted = await handleEnableReminders();
     if (granted) {
-      setReminderMessage('Recordatorios reprogramados para los próximos 7 días.');
+      setReminderMessage(t('settings.remindersRescheduled'));
     }
   }
 
@@ -169,7 +172,7 @@ export function SettingsPage() {
     if (!activeProfileId) return;
     setReminderMessage(null);
     await handleDisableReminders();
-    setReminderMessage('Recordatorios cancelados en este dispositivo.');
+    setReminderMessage(t('settings.remindersCancelled'));
   }
 
   function handleEnterChildMode(): void {
@@ -179,7 +182,7 @@ export function SettingsPage() {
   }
 
   function formatLastUpdate(iso: string | null | undefined): string {
-    if (!iso) return 'Sin datos';
+    if (!iso) return t('settings.data.noData');
     try {
       return new Date(iso).toLocaleString('es-ES', {
         dateStyle: 'medium',
@@ -215,8 +218,8 @@ export function SettingsPage() {
     >
       <div className={cn('space-y-8', isEffectiveTablet && 'col-span-2')}>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Ajustes</h2>
-          <p className="mt-1 text-slate-600">Configura la app para toda la familia.</p>
+          <h2 className="text-2xl font-bold text-slate-900">{t('settings.title')}</h2>
+          <p className="mt-1 text-slate-600">{t('settings.subtitle')}</p>
         </div>
 
         {error && (
@@ -227,48 +230,54 @@ export function SettingsPage() {
       </div>
 
       <div className="space-y-8">
+        <SettingsSection title={t('language.section')} description={t('language.subtitle')}>
+          <div className="py-3">
+            <LanguageSelectionPage compact selectedLanguage={language} onSelected={() => {}} />
+          </div>
+        </SettingsSection>
+
         <SettingsSection
-          title="Perfil activo"
-          description="La agenda y las preferencias visuales usan este perfil."
+          title={t('settings.activeProfile')}
+          description={t('settings.activeProfileHint')}
         >
           {activeProfile ? (
             <div className="flex items-center gap-4 px-1 py-2">
               <ProfileAvatar profile={activeProfile} size="md" avatars={avatars} />
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900">{activeProfile.name}</p>
-                <p className="text-sm text-slate-500">Perfil seleccionado</p>
+                <p className="text-sm text-slate-500">{t('adultMode.selectedProfile')}</p>
               </div>
               <Link
                 to="/profiles"
                 className="flex items-center gap-1 text-sm font-semibold text-[var(--color-primary)]"
               >
-                Cambiar
+                {t('common.change')}
                 <ChevronRight className="h-4 w-4" aria-hidden />
               </Link>
             </div>
           ) : (
             <div className="py-3">
-              <p className="text-slate-600">No hay perfil activo.</p>
+              <p className="text-slate-600">{t('settings.noActiveProfile')}</p>
               <Link to="/profiles" className="mt-2 inline-block text-sm font-semibold text-[var(--color-primary)]">
-                Elegir perfil
+                {t('settings.chooseProfile')}
               </Link>
             </div>
           )}
         </SettingsSection>
 
         <SettingsSection
-          title="Preferencias visuales"
-          description="Opciones de la agenda para el perfil activo."
+          title={t('settings.visualPrefs')}
+          description={t('settings.visualPrefsHint')}
         >
           {!activeProfileId ? (
-            <p className="py-3 text-sm text-slate-500">Selecciona un perfil para editar preferencias.</p>
+            <p className="py-3 text-sm text-slate-500">{t('settings.selectProfilePrefs')}</p>
           ) : isProfileSettingsLoading || !profileSettings ? (
-            <p className="py-3 text-sm text-slate-500">Cargando preferencias…</p>
+            <p className="py-3 text-sm text-slate-500">{t('settings.loadingPrefs')}</p>
           ) : (
             <>
               <ToggleRow
-                label="Mostrar temporizador visual"
-                description="Barra o reloj durante la actividad"
+                label={t('settings.showTimer')}
+                description={t('settings.showTimerHint')}
                 checked={profileSettings.showTimer}
                 disabled={isSaving}
                 onChange={(on) =>
@@ -276,8 +285,8 @@ export function SettingsPage() {
                 }
               />
               <ToggleRow
-                label="Mostrar Ahora / Después / Más tarde"
-                description="Anticipación del día en la agenda"
+                label={t('settings.showAnticipation')}
+                description={t('settings.showAnticipationHint')}
                 checked={profileSettings.showAnticipation}
                 disabled={isSaving}
                 onChange={(on) =>
@@ -285,8 +294,8 @@ export function SettingsPage() {
                 }
               />
               <SelectRow
-                label="Tipo de celebración"
-                description="Al completar una actividad"
+                label={t('settings.celebrationType')}
+                description={t('settings.celebrationHint')}
                 value={normalizeCelebrationStyle(profileSettings.celebrationStyle)}
                 options={celebrationOptions}
                 disabled={isSaving}
@@ -295,7 +304,7 @@ export function SettingsPage() {
                 }
               />
               <SelectRow
-                label="Estilo de temporizador"
+                label={t('settings.timerStyle')}
                 value={profileSettings.timerStyle}
                 options={timerOptions}
                 disabled={isSaving}
@@ -308,30 +317,30 @@ export function SettingsPage() {
         </SettingsSection>
 
         <SettingsSection
-          title="Recordatorios"
-          description="Avisos locales para actividades programadas. Solo en la app móvil."
+          title={t('settings.reminders')}
+          description={t('settings.remindersHint')}
         >
           {!activeProfileId ? (
-            <p className="py-3 text-sm text-slate-500">Selecciona un perfil para configurar recordatorios.</p>
+            <p className="py-3 text-sm text-slate-500">{t('settings.selectProfileReminders')}</p>
           ) : isProfileSettingsLoading || !profileSettings ? (
-            <p className="py-3 text-sm text-slate-500">Cargando preferencias…</p>
+            <p className="py-3 text-sm text-slate-500">{t('settings.loadingPrefs')}</p>
           ) : !notificationPlatform.supported ? (
             <p className="py-3 text-sm text-slate-600">
-              Los recordatorios estarán disponibles al instalar la app en Android.
+              {t('settings.remindersWebHint')}
             </p>
           ) : (
             <>
               <ToggleRow
-                label="Activar recordatorios"
-                description="Recibir avisos antes o durante las actividades"
+                label={t('settings.enableReminders')}
+                description={t('settings.enableRemindersHint')}
                 checked={notificationsEnabled}
                 disabled={isSaving || isRequestingNotifications}
                 onChange={(on) => void handleToggleReminders(on)}
               />
               {notificationsEnabled && (
                 <SelectRow
-                  label="Cuándo avisar"
-                  description="Sin recordatorio = desactivar el interruptor de arriba"
+                  label={t('settings.reminderWhen')}
+                  description={t('settings.reminderWhenHint')}
                   value={String(profileSettings.notificationMinutesBefore ?? 0)}
                   options={notificationTimingOptions}
                   disabled={isSaving || isRequestingNotifications}
@@ -341,8 +350,7 @@ export function SettingsPage() {
               {notificationsEnabled && notificationPermission === 'denied' && (
                 <div className="py-3">
                   <p className="text-sm text-amber-800">
-                    Para recibir recordatorios de actividades, permite las notificaciones en este
-                    dispositivo.
+                    {t('settings.allowNotificationsHint')}
                   </p>
                   <Button
                     variant="secondary"
@@ -350,15 +358,14 @@ export function SettingsPage() {
                     disabled={isRequestingNotifications}
                     onClick={() => void requestNotificationPermissions()}
                   >
-                    Permitir notificaciones
+                    {t('settings.allowNotifications')}
                   </Button>
                 </div>
               )}
               {notificationsEnabled && notificationPermission === 'prompt' && (
                 <div className="py-3">
                   <p className="text-sm text-slate-600">
-                    Para recibir recordatorios de actividades, permite las notificaciones en este
-                    dispositivo.
+                    {t('settings.allowNotificationsHint')}
                   </p>
                   <Button
                     variant="secondary"
@@ -366,7 +373,7 @@ export function SettingsPage() {
                     disabled={isRequestingNotifications}
                     onClick={() => void requestNotificationPermissions()}
                   >
-                    Permitir notificaciones
+                    {t('settings.allowNotifications')}
                   </Button>
                 </div>
               )}
@@ -378,7 +385,7 @@ export function SettingsPage() {
                     disabled={isSaving || isRequestingNotifications}
                     onClick={() => void handleRescheduleReminders()}
                   >
-                    Reprogramar recordatorios
+                    {t('settings.rescheduleReminders')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -386,7 +393,7 @@ export function SettingsPage() {
                     disabled={isSaving || isRequestingNotifications}
                     onClick={() => void handleCancelReminders()}
                   >
-                    Cancelar recordatorios
+                    {t('settings.cancelReminders')}
                   </Button>
                 </div>
               )}
@@ -395,7 +402,7 @@ export function SettingsPage() {
                   to="/settings/diagnostics"
                   className="text-sm font-semibold text-[var(--color-primary)]"
                 >
-                  Ver diagnóstico de recordatorios
+                  {t('settings.diagnosticsLink')}
                 </Link>
               </div>
               {reminderMessage && (
@@ -407,17 +414,17 @@ export function SettingsPage() {
           )}
         </SettingsSection>
 
-        <SettingsSection title="PIN de adulto" description="Protege el acceso a ajustes y edición.">
+        <SettingsSection title={t('settings.pinSection')} description={t('settings.pinSectionHint')}>
           <AdultPinSettings />
         </SettingsSection>
 
-        <SettingsSection title="Modo niño" description="Vista simple para la persona usuaria.">
+        <SettingsSection title={t('settings.childModeSection')} description={t('settings.childModeSectionHint')}>
           <div className="py-3">
             <p className="text-sm text-slate-600">
-              Oculta edición y configuración. Solo consultar la agenda y completar actividades.
+              {t('childMode.enterHint')}
             </p>
             <Button fullWidth className="mt-4 min-h-14" onClick={handleEnterChildMode}>
-              Entrar en modo niño
+              {t('childMode.enterTitle')}
             </Button>
             <LockAdultModeButton className="mt-3 w-full min-h-12" />
           </div>
@@ -425,10 +432,10 @@ export function SettingsPage() {
       </div>
 
       <div className="space-y-8">
-        <SettingsSection title="Dispositivo" description="Cómo se adapta la interfaz.">
+        <SettingsSection title={t('settings.deviceSection')} description={t('settings.deviceHint')}>
           <SelectRow
-            label="Tipo de dispositivo preferido"
-            description="Automático detecta el tamaño de pantalla"
+            label={t('settings.preferredDevice')}
+            description={t('settings.preferredDeviceHint')}
             value={preferredDeviceLayout}
             options={deviceOptions}
             disabled={isSaving}
@@ -436,49 +443,49 @@ export function SettingsPage() {
           />
           <div className="py-3 text-sm text-slate-600">
             <p>
-              Layout actual:{' '}
+              {t('settings.currentLayout')}:{' '}
               <span className="font-medium text-slate-900">
-                {effectiveLayout === 'mobile' ? 'Teléfono' : 'Tablet'}
+                {effectiveLayout === 'mobile' ? t('settings.phone') : t('settings.tablet')}
               </span>
             </p>
             <p className="mt-1">
-              Pantalla detectada: {deviceType} · {orientation === 'portrait' ? 'Vertical' : 'Horizontal'}
+              {t('settings.detectedScreen')}: {deviceType} · {orientation === 'portrait' ? t('settings.portrait') : t('settings.landscape')}
             </p>
           </div>
         </SettingsSection>
 
-        <SettingsSection title="Accesibilidad" description="Comodidad visual para toda la app.">
+        <SettingsSection title={t('settings.accessibility')} description={t('settings.accessibilityHint')}>
           <ToggleRow
-            label="Texto grande"
-            description="Aumenta el tamaño de la tipografía"
+            label={t('settings.largeText')}
+            description={t('settings.largeTextHint')}
             checked={largeText}
             disabled={isSaving}
             onChange={(on) => void setAccessibility({ largeText: on })}
           />
           <ToggleRow
-            label="Reducir animaciones"
-            description="Menos movimiento en transiciones y celebraciones"
+            label={t('settings.reduceMotion')}
+            description={t('settings.reduceMotionHint')}
             checked={reduceMotion}
             disabled={isSaving}
             onChange={(on) => void setAccessibility({ reduceMotion: on })}
           />
           <ToggleRow
-            label="Alto contraste"
-            description="Colores más marcados y legibles"
+            label={t('settings.highContrast')}
+            description={t('settings.highContrastHint')}
             checked={highContrast}
             disabled={isSaving}
             onChange={(on) => void setAccessibility({ highContrast: on })}
           />
           {!activeProfileId ? (
             <p className="py-3 text-sm text-slate-500">
-              Selecciona un perfil para ajustar el nivel de detalle en modo niño.
+              {t('settings.selectProfileDetailChild')}
             </p>
           ) : isProfileSettingsLoading || !profileSettings ? (
-            <p className="py-3 text-sm text-slate-500">Cargando preferencias…</p>
+            <p className="py-3 text-sm text-slate-500">{t('settings.loadingPrefs')}</p>
           ) : (
             <SelectRow
-              label="Nivel de detalle en modo niño"
-              description="Cuánta información ve la persona usuaria"
+              label={t('settings.childDetailLevel')}
+              description={t('settings.childDetailHint')}
               value={profileSettings.childModeDetailLevel}
               options={detailOptions}
               disabled={isSaving}
@@ -489,44 +496,43 @@ export function SettingsPage() {
           )}
         </SettingsSection>
 
-        <SettingsSection title="Datos y almacenamiento">
+        <SettingsSection title={t('settings.dataSection')}>
           <div className="space-y-4 py-3">
             <div>
-              <p className="font-medium text-slate-900">Datos guardados en este dispositivo</p>
+              <p className="font-medium text-slate-900">{t('settings.data.storedTitle')}</p>
               <p className="mt-2 text-sm text-slate-600">
-                PICTORGANIZER guarda la agenda y los perfiles en este dispositivo para que puedas
-                usar la app sin conexión.
+                {t('settings.data.storedDesc')}
               </p>
             </div>
 
             {isDbSummaryLoading || !dbSummary ? (
-              <p className="text-sm text-slate-500">Cargando resumen…</p>
+              <p className="text-sm text-slate-500">{t('settings.data.loadingSummary')}</p>
             ) : (
               <dl className="grid grid-cols-2 gap-3 text-sm">
                 <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <dt className="text-slate-500">Perfiles</dt>
+                  <dt className="text-slate-500">{t('settings.data.profiles')}</dt>
                   <dd className="text-lg font-bold text-slate-900">{dbSummary.profileCount}</dd>
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <dt className="text-slate-500">Rutinas aplicadas</dt>
+                  <dt className="text-slate-500">{t('settings.data.appliedRoutines')}</dt>
                   <dd className="text-lg font-bold text-slate-900">
                     {dbSummary.appliedRoutinesCount}
                   </dd>
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <dt className="text-slate-500">Actividades futuras</dt>
+                  <dt className="text-slate-500">{t('settings.data.futureActivities')}</dt>
                   <dd className="text-lg font-bold text-slate-900">
                     {dbSummary.futureActivitiesCount}
                   </dd>
                 </div>
                 <div className="rounded-xl bg-slate-50 px-3 py-2">
-                  <dt className="text-slate-500">Actividades históricas</dt>
+                  <dt className="text-slate-500">{t('settings.data.historicalActivities')}</dt>
                   <dd className="text-lg font-bold text-slate-900">
                     {dbSummary.historicalActivitiesCount}
                   </dd>
                 </div>
                 <div className="col-span-2 rounded-xl bg-slate-50 px-3 py-2">
-                  <dt className="text-slate-500">Última actualización local</dt>
+                  <dt className="text-slate-500">{t('settings.data.lastUpdate')}</dt>
                   <dd className="font-medium text-slate-900">
                     {formatLastUpdate(dbSummary.lastLocalUpdateAt)}
                   </dd>
@@ -541,7 +547,7 @@ export function SettingsPage() {
               disabled={isMaintenanceRunning}
               onClick={() => void runIntegrityCheck()}
             >
-              {isMaintenanceRunning ? 'Comprobando…' : 'Validar integridad'}
+              {isMaintenanceRunning ? t('settings.data.checking') : t('settings.data.validateIntegrity')}
             </Button>
 
             {integrityReport && (
@@ -552,12 +558,11 @@ export function SettingsPage() {
                 role="status"
               >
                 {integrityReport.isHealthy ? (
-                  <p>Todo parece correcto. No se encontraron problemas.</p>
+                  <p>{t('settings.data.integrityOk')}</p>
                 ) : (
                   <div>
                     <p className="font-semibold">
-                      Se encontraron {integrityReport.issueCount} aviso
-                      {integrityReport.issueCount === 1 ? '' : 's'}:
+                      {t('settings.data.issuesFound', { count: integrityReport.issueCount })}
                     </p>
                     <ul className="mt-2 list-disc space-y-1 pl-5">
                       {integrityReport.issues.slice(0, 5).map((issue) => (
@@ -565,7 +570,7 @@ export function SettingsPage() {
                       ))}
                     </ul>
                     {integrityReport.issues.length > 5 && (
-                      <p className="mt-2 text-xs">…y {integrityReport.issues.length - 5} más</p>
+                      <p className="mt-2 text-xs">{t('settings.data.andMore', { count: integrityReport.issues.length - 5 })}</p>
                     )}
                   </div>
                 )}
@@ -575,7 +580,7 @@ export function SettingsPage() {
             {cleanupConfirmOpen ? (
               <div className="rounded-xl bg-slate-50 p-4">
                 <p className="text-sm text-slate-700">
-                  Se eliminarán permanentemente los registros borrados hace más de 30 días.
+                  {t('settings.data.cleanupConfirm')}
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Button
@@ -584,14 +589,14 @@ export function SettingsPage() {
                     disabled={isMaintenanceRunning}
                     onClick={() => void handleConfirmCleanup()}
                   >
-                    Confirmar limpieza
+                    {t('settings.data.confirmCleanup')}
                   </Button>
                   <Button
                     variant="ghost"
                     className="min-h-11 flex-1"
                     onClick={() => setCleanupConfirmOpen(false)}
                   >
-                    Cancelar
+                    {t('common.cancel')}
                   </Button>
                 </div>
               </div>
@@ -603,14 +608,13 @@ export function SettingsPage() {
                 disabled={isMaintenanceRunning}
                 onClick={() => setCleanupConfirmOpen(true)}
               >
-                Limpiar registros antiguos
+                {t('settings.data.cleanupOld')}
               </Button>
             )}
 
             {cleanupResult && (
               <p className="text-sm text-slate-600" role="status">
-                Limpieza completada: {cleanupResult.deletedInstances} actividades y{' '}
-                {cleanupResult.deletedRoutines} rutinas antiguas eliminadas.
+                {t('settings.data.cleanupDone', { instances: cleanupResult.deletedInstances, routines: cleanupResult.deletedRoutines })}
               </p>
             )}
 
@@ -621,10 +625,10 @@ export function SettingsPage() {
             )}
 
             <Button fullWidth variant="secondary" disabled className="min-h-12">
-              Exportar datos — Próximamente
+              {t('settings.data.exportSoon')}
             </Button>
             <Button fullWidth variant="secondary" disabled className="min-h-12">
-              Importar datos — Próximamente
+              {t('settings.data.importSoon')}
             </Button>
             <Button
               fullWidth
@@ -632,7 +636,7 @@ export function SettingsPage() {
               className="min-h-12 text-red-600 ring-red-100"
               onClick={() => setResetDialogOpen(true)}
             >
-              Restablecer PICTORGANIZER
+              {t('settings.resetApp')}
             </Button>
           </div>
         </SettingsSection>

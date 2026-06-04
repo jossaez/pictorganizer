@@ -9,6 +9,7 @@ import {
   SyncStatus,
   TimerStyle,
 } from '../enums';
+import type { SupportedLanguage } from '@/i18n/languages';
 import type { ActivityVisual, RecurrenceRule, RoutineStep } from './value-objects';
 
 /** Shared sync-ready fields on mutable domain entities */
@@ -151,6 +152,8 @@ export interface AppSettings {
   adultPinHash?: string;
   /** When true and adultPinHash exists, adult routes require unlock */
   requirePinForAdultMode: boolean;
+  /** UI language — persisted in Dexie */
+  language: SupportedLanguage;
   preferredDeviceLayout: DeviceLayout;
   reduceMotion: boolean;
   largeText: boolean;

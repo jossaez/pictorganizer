@@ -1,5 +1,6 @@
 import { APP_SETTINGS_ID, CelebrationStyle, ChildModeDetailLevel, TimerStyle } from '../../domain/enums';
 import type { AppSettings, ProfileSettings } from '../../domain/types';
+import { DEFAULT_LANGUAGE, isSupportedLanguage } from '@/i18n/languages';
 import { generateId } from '../../utils/generateId';
 import { db } from './dexie.db';
 import { createDefaultAppSettings } from './seeds/seedIfEmpty';
@@ -76,6 +77,10 @@ export async function repairAppSettingsIfNeeded(): Promise<AppSettings> {
 
   if (settings.requirePinForAdultMode === undefined) {
     return settingsRepository.updateAppSettings({ requirePinForAdultMode: false });
+  }
+
+  if (!settings.language || !isSupportedLanguage(settings.language)) {
+    return settingsRepository.updateAppSettings({ language: DEFAULT_LANGUAGE });
   }
 
   return settingsRepository.getOrCreateAppSettings();
