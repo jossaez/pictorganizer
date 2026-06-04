@@ -19,6 +19,10 @@ jobs:
 
         uses: actions/checkout@v4
 
+      - name: Show workflow version
+
+        run: echo "WORKFLOW_VERSION=2026-06-04-absolute-and-daemon-path"
+
       - name: Setup Node.js
 
         uses: actions/setup-node@v4
@@ -63,17 +67,39 @@ jobs:
 
         run: npx cap sync android
 
-      - name: Restore release keystore
+      - name: Restore release keystore in all possible paths
 
         run: |
 
+          set -e
+
+          echo "Restoring keystore..."
+
           mkdir -p "$GITHUB_WORKSPACE/android/keystores"
+
+          mkdir -p "$GITHUB_WORKSPACE/android/app/keystores"
+
+          mkdir -p "$HOME/.gradle/daemon/8.14.3/keystores"
 
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > "$GITHUB_WORKSPACE/android/keystores/pictorganizer-release.jks"
 
-          test -f "$GITHUB_WORKSPACE/android/keystores/pictorganizer-release.jks"
+          cp "$GITHUB_WORKSPACE/android/keystores/pictorganizer-release.jks" "$GITHUB_WORKSPACE/android/app/keystores/pictorganizer-release.jks"
+
+          cp "$GITHUB_WORKSPACE/android/keystores/pictorganizer-release.jks" "$HOME/.gradle/daemon/8.14.3/keystores/pictorganizer-release.jks"
+
+          echo "Checking keystore paths..."
 
           ls -la "$GITHUB_WORKSPACE/android/keystores"
+
+          ls -la "$GITHUB_WORKSPACE/android/app/keystores"
+
+          ls -la "$HOME/.gradle/daemon/8.14.3/keystores"
+
+          test -f "$GITHUB_WORKSPACE/android/keystores/pictorganizer-release.jks"
+
+          test -f "$GITHUB_WORKSPACE/android/app/keystores/pictorganizer-release.jks"
+
+          test -f "$HOME/.gradle/daemon/8.14.3/keystores/pictorganizer-release.jks"
 
       - name: Make Gradle executable
 
@@ -83,21 +109,7 @@ jobs:
 
         working-directory: android
 
-        env:
-
-          RELEASE_KEYSTORE_PATH: ${{ github.workspace }}/android/keystores/pictorganizer-release.jks
-
-        run: |
-
-          ./gradlew bundleRelease \
-
-            -Pandroid.injected.signing.store.file="$RELEASE_KEYSTORE_PATH" \
-
-            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
-
-            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
-
-            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
+        run: ./gradlew bundleRelease -Pandroid.injected.signing.store.file=keystores/pictorganizer-release.jks -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
 
       - name: Upload signed release AAB
 
