@@ -67,11 +67,11 @@ jobs:
 
         run: |
 
-          mkdir -p android/app/keystores
+          mkdir -p android/app/app/keystores
 
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystores/pictorganizer-release.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/app/keystores/pictorganizer-release.jks
 
-          ls -la android/app/keystores
+          ls -la android/app/app/keystores
 
       - name: Make Gradle executable
 
@@ -81,7 +81,7 @@ jobs:
 
         working-directory: android
 
-        run: ./gradlew bundleRelease -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/android/app/keystores/pictorganizer-release.jks" -Pandroid.injected.signing.store.password='${{ secrets.ANDROID_KEYSTORE_PASSWORD }}' -Pandroid.injected.signing.key.alias='${{ secrets.ANDROID_KEY_ALIAS }}' -Pandroid.injected.signing.key.password='${{ secrets.ANDROID_KEY_PASSWORD }}'
+        run: ./gradlew bundleRelease
 
       - name: Upload signed release AAB
 
